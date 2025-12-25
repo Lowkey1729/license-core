@@ -13,9 +13,11 @@ use App\Models\Brand;
 use App\Models\License;
 use App\Models\LicenseKey;
 use App\Models\Product;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
-class LicenseService
+readonly class BrandLicenseService
 {
     /**
      * @param  array<string, mixed>  $data
@@ -26,7 +28,7 @@ class LicenseService
     {
         $product = Product::query()
             ->where('brand_id', $brand->id)
-            ->where('slug', $data['slug'])
+            ->where('slug', $data['product_slug'])
             ->firstOrFail();
 
         DB::transaction(function () use ($brand, $data, $product) {
@@ -61,16 +63,22 @@ class LicenseService
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateLicenseStatus(Brand $brand, string $id, array $data): void
     {
-        $license = License::query()->findOrFail($id);
+        $license = License::query()
+            ->whereRelation('licenseKey', 'brand_id', $brand->id)
+            ->where('id', $id)
+            ->firstOrFail();
 
-        match($data['action']) {
+        match ($data['action']) {
             LicenseActionEnum::Suspend->value => $license->status = LicenseStatusEnum::Suspended->value,
             LicenseActionEnum::Resume->value => $license->status = LicenseStatusEnum::Active->value,
             LicenseActionEnum::Cancel->value => $license->status = LicenseStatusEnum::Cancelled->value,
             LicenseActionEnum::Renew->value => function (License $license, array $data) {
-                $license->expires_at = $data["expires_at"];
+                $license->expires_at = $data['expires_at'];
                 $license->status = LicenseStatusEnum::Active->value;
             },
         };
@@ -83,7 +91,22 @@ class LicenseService
             actorType: ActorTypeEnum::Brand,
             actorId: $brand->id,
             objectType: License::class,
-            objectId: $license->id
+            objectId: $license->id,
+            metadata: $data
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return LengthAwarePaginator<int, License>
+     */
+    public function fetchLicenses(Brand $brand, array $data): LengthAwarePaginator
+    {
+        return License::query()
+            ->whereRelation('licenseKey', 'brand_id', $brand->id)
+            ->when(isset($data['email']), function (Builder $query) use ($data) {
+                $query->whereRelation('licenseKey', 'email', $data['email']);
+            })
+            ->paginate();
     }
 }

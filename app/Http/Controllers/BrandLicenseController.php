@@ -3,18 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Requests\FetchLicensesRequest;
 use App\Requests\ProvisionLicenseRequest;
 use App\Requests\UpdateLicenseStatusRequest;
-use App\Services\LicenseService;
+use App\Services\BrandLicenseService;
 use Domain\Shared\DTOs\Responses\SuccessResponse;
 use Illuminate\Contracts\Support\Responsable;
 use Random\RandomException;
 
-class LicenseController extends Controller
+class BrandLicenseController extends Controller
 {
     public function __construct(
-        private readonly LicenseService $licenseService
+        private readonly BrandLicenseService $licenseService
     ) {}
+
+    public function index(FetchLicensesRequest $request)
+    {
+        /** @var Brand $brand */
+        $brand = $request->brand;
+
+        $results = $this->licenseService->fetchLicenses($brand, $request->validated());
+
+        return new SuccessResponse('Licenses fetched successfully', $results);
+    }
 
     /**
      * @throws \Throwable

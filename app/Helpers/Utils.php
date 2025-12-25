@@ -13,6 +13,7 @@ function auditLog(
     ?string $actorId = null,
     ?string $objectType = null,
     ?string $objectId = null,
+    ?array $metadata = null,
     bool $dispatchAfterCommit = false,
 ): void {
 
@@ -22,7 +23,8 @@ function auditLog(
         $actorType,
         $actorId,
         $objectType,
-        $objectId
+        $objectId,
+        $metadata,
     );
 
     if ($dispatchAfterCommit) {

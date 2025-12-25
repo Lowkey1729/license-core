@@ -16,8 +16,9 @@ return new class extends Migration
             $table->foreignUuid('license_id')->constrained()->cascadeOnDelete();
             $table->string('fingerprint');
             $table->string('platform_info')->nullable();
+            $table->timestamp('deleted_at')->nullable();
 
-            $table->unique(['license_id', 'fingerprint']);
+            $table->unique(['license_id', 'fingerprint', 'deleted_at']);
             $table->timestamps();
         });
     }

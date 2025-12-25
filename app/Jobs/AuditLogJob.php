@@ -21,7 +21,8 @@ class AuditLogJob implements ShouldQueue
         private readonly ActorTypeEnum $actorType,
         private readonly ?string $actorId = null,
         private readonly ?string $objectType = null,
-        private readonly ?string $objectId = null
+        private readonly ?string $objectId = null,
+        private readonly array $metadata = [],
     ) {}
 
     public function handle(): void
@@ -33,6 +34,7 @@ class AuditLogJob implements ShouldQueue
             'actor_id' => $this->actorId,
             'object_type' => $this->objectType,
             'object_id' => $this->objectId,
+            'metadata' => $this->metadata,
         ]);
     }
 }
