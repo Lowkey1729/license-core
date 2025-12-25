@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class FailureResponse extends Data
 {
-
     public function __construct(
         protected string $message,
         protected int $httpStatusCode

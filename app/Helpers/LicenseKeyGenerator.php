@@ -1,15 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Helpers;
 
 use Random\RandomException;
 
 class LicenseKeyGenerator
 {
-
     private const int ENTROPY_BYTES = 16;
-
-    private string $key;
 
     /**
      * @throws RandomException
@@ -17,6 +14,7 @@ class LicenseKeyGenerator
     public function handle(): string
     {
         $bytes = random_bytes(self::ENTROPY_BYTES);
+
         return $this->base32Encode($bytes);
     }
 
@@ -33,12 +31,12 @@ class LicenseKeyGenerator
 
             while ($vBits >= 5) {
                 $vBits -= 5;
-                $output .= $alphabet[($v >> $vBits) & 0x1f];
+                $output .= $alphabet[($v >> $vBits) & 0x1F];
             }
         }
 
         if ($vBits > 0) {
-            $output .= $alphabet[($v << (5 - $vBits)) & 0x1f];
+            $output .= $alphabet[($v << (5 - $vBits)) & 0x1F];
         }
 
         return $output;

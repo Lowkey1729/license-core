@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('license_keys', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid("brand_id")->constrained();
-            $table->text("key");
-            $table->foreignUuid("customer_id")->constrained()->cascadeOnDelete();
+            $table->foreignUuid('brand_id')->constrained();
+            $table->text('key');
+            $table->string('customer_email');
             $table->timestamps();
         });
     }

@@ -10,7 +10,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SuccessResponse extends Data
 {
-
     /**
      * @template TValue
      *
