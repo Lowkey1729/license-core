@@ -17,7 +17,7 @@ class BrandLicenseController extends Controller
         private readonly BrandLicenseService $licenseService
     ) {}
 
-    public function index(FetchLicensesRequest $request)
+    public function index(FetchLicensesRequest $request): Responsable
     {
         /** @var Brand $brand */
         $brand = $request->brand;

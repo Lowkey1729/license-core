@@ -8,6 +8,9 @@ trait HasUUIDs
 {
     use \Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+    /**
+     * @return array<int, string>
+     */
     public function uniqueIds(): array
     {
         return ['id'];

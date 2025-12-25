@@ -20,11 +20,17 @@ class LicenseKey extends Model
         'key',
     ];
 
+    /**
+     * @return HasMany<License, $this>
+     */
     public function licenses(): HasMany
     {
         return $this->hasMany(License::class);
     }
 
+    /**
+     * @return Attribute<string, string>
+     */
     protected function key(): Attribute
     {
         return Attribute::make(

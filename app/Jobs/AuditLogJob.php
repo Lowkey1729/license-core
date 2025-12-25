@@ -22,6 +22,7 @@ class AuditLogJob implements ShouldQueue
         private readonly ?string $actorId = null,
         private readonly ?string $objectType = null,
         private readonly ?string $objectId = null,
+        /** @var array<string, mixed> $metadata */
         private readonly array $metadata = [],
     ) {}
 

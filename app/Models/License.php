@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Concerns\HasUUIDs;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class License extends Model
 {
@@ -20,17 +21,33 @@ class License extends Model
         'max_seats',
     ];
 
+    protected $casts = [
+        'expires_at' => 'datetime',
+    ];
+
     /**
-     * @return BelongsTo<Product>
+     * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+
+    /**
+     * @return BelongsTo<LicenseKey, $this>
+     */
     public function licenseKey(): BelongsTo
     {
         return $this->belongsTo(LicenseKey::class);
+    }
+
+    /**
+     * @return HasMany<Activation, $this>
+     */
+    public function activations(): HasMany
+    {
+        return $this->hasMany(Activation::class);
     }
 
     public function isValid(): bool

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Concerns\HasUUIDs;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Product extends Model
 {
@@ -16,4 +17,12 @@ class Product extends Model
         'name',
         'slug',
     ];
+
+    /**
+     * @return BelongsTo<Brand, $this>
+     */
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(Brand::class);
+    }
 }

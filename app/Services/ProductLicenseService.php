@@ -7,6 +7,7 @@ use App\Enums\EventEnum;
 use App\Exceptions\LicenseException;
 use App\Helpers\LicenseKeyAESEncryption;
 use App\Models\Activation;
+use App\Models\License;
 use App\Models\LicenseKey;
 
 readonly class ProductLicenseService
@@ -16,6 +17,8 @@ readonly class ProductLicenseService
     ) {}
 
     /**
+     * @param array<string, mixed> $data
+     * @return void
      * @throws LicenseException
      */
     public function activate(array $data): void
@@ -23,7 +26,7 @@ readonly class ProductLicenseService
         $licenseKey = LicenseKey::query()
             ->with(['licenses', 'licenses.product'])
             ->whereRelation('licenses.product', 'slug', $data['product_slug'])
-            ->where('license_key', $this->licenseKeyAES->encrypt($data['license_key']))
+            ->where('key', $this->licenseKeyAES->encrypt($data['license_key']))
             ->first();
 
         if (! $licenseKey) {
@@ -68,6 +71,8 @@ readonly class ProductLicenseService
     }
 
     /**
+     * @param array<string, mixed> $data
+     * @return void
      * @throws LicenseException
      */
     public function deactivate(array $data): void
@@ -75,7 +80,7 @@ readonly class ProductLicenseService
         $licenseKey = LicenseKey::query()
             ->with(['licenses', 'licenses.product'])
             ->whereRelation('licenses.product', 'slug', $data['product_slug'])
-            ->where('license_key', $this->licenseKeyAES->encrypt($data['license_key']))
+            ->where('key', $this->licenseKeyAES->encrypt($data['license_key']))
             ->first();
 
         if (! $licenseKey) {
@@ -106,6 +111,8 @@ readonly class ProductLicenseService
     }
 
     /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
      * @throws LicenseException
      */
     public function checkStatus(array $data): array
@@ -113,7 +120,7 @@ readonly class ProductLicenseService
         $licenseKey = LicenseKey::query()
             ->with(['licenses', 'licenses.product'])
             ->whereRelation('licenses.product', 'slug', $data['product_slug'])
-            ->where('license_key', $this->licenseKeyAES->encrypt($data['license_key']))
+            ->where('key', $this->licenseKeyAES->encrypt($data['license_key']))
             ->first();
 
         if (! $licenseKey) {

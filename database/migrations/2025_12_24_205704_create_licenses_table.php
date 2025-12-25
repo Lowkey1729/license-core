@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignUuid('product_id')->constrained()->cascadeOnDelete();
             $table->string('status', 25)->default(LicenseStatusEnum::Active->value);
             $table->integer('max_seats')->default(1);
-            $table->timestamp('expired_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
     }

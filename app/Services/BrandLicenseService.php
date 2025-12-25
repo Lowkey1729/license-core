@@ -8,6 +8,7 @@ use App\Enums\ActorTypeEnum;
 use App\Enums\EventEnum;
 use App\Enums\LicenseActionEnum;
 use App\Enums\LicenseStatusEnum;
+use App\Exceptions\InvalidLicenseActionException;
 use App\Helpers\LicenseKeyGenerator;
 use App\Models\Brand;
 use App\Models\License;
@@ -81,6 +82,7 @@ readonly class BrandLicenseService
                 $license->expires_at = $data['expires_at'];
                 $license->status = LicenseStatusEnum::Active->value;
             },
+            default => throw new InvalidLicenseActionException("License action '{$data['action']}' is not supported."),
         };
 
         $license->save();
