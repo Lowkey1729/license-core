@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('licence_key_pools', function (Blueprint $table) {
-            $table->id();
+        Schema::create('activations', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid("license_id")->constrained()->cascadeOnDelete();
+            $table->string("fingerprint");
+            $table->string("platform_info")->nullable();
+
+            $table->unique(['license_id', 'fingerprint']);
             $table->timestamps();
         });
     }
@@ -22,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('licence_key_pools');
+        Schema::dropIfExists('activations');
     }
 };
