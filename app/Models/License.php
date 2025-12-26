@@ -33,7 +33,6 @@ class License extends Model
         return $this->belongsTo(Product::class);
     }
 
-
     /**
      * @return BelongsTo<LicenseKey, $this>
      */

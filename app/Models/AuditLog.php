@@ -18,13 +18,12 @@ use UnitEnum;
  */
 class AuditLog extends Model
 {
-
     /**
      * The connection name for the model.
      *
      * @var UnitEnum|string|null
      */
-    protected $connection = "mongodb";
+    protected $connection = 'mongodb';
 
     protected $fillable = [
         'event',
