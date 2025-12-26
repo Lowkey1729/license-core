@@ -10,7 +10,7 @@ Route::prefix('v1')->group(function () {
             ->name('brand.licenses.index');
         Route::post('licenses', [BrandLicenseController::class, 'store'])
             ->name('brand.licenses.store');
-        Route::put('licenses/{id}', [BrandLicenseController::class, 'update'])
+        Route::patch('licenses/{id}', [BrandLicenseController::class, 'update'])
             ->name('brand.licenses.update');
     });
 

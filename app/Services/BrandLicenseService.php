@@ -165,6 +165,7 @@ readonly class BrandLicenseService
     public function fetchLicenses(Brand $brand, array $data): LengthAwarePaginator
     {
         return License::query()
+            ->with('licenseKey:id,customer_email')
             ->whereRelation('licenseKey', 'brand_id', $brand->id)
             ->when(isset($data['email']), function (Builder $query) use ($data) {
                 $query->whereRelation('licenseKey', 'customer_email', $data['email']);
