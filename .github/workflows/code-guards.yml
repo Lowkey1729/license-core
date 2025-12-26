@@ -57,9 +57,6 @@ jobs:
 
       - name: Prep Application
         run: |
-          mkdir -p storage/onebanq-app storage/onebanq-arca-keys
-          touch storage/onebanq-app/{app.pem,app.pem.pub,mobile-app.pem,mobile-app.pem.pub}
-          touch storage/onebanq-arca-keys/{arca.pem.pub,obq-arca.pem,obq-arca.pem.pub}
           cp .env.example .env
           php artisan key:generate
           php artisan generate:test-keys
