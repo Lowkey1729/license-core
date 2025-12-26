@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Concerns\HasUUIDs;
 use App\Helpers\LicenseKeyAESEncryption;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -36,6 +37,17 @@ class LicenseKey extends Model
         return Attribute::make(
             get: fn (?string $value) => $value ? resolve(LicenseKeyAESEncryption::class)->decrypt($value) : null,
             set: fn (string $value) => resolve(LicenseKeyAESEncryption::class)->encrypt($value),
+        );
+    }
+
+    public function scopeForProduct(Builder $query, ?string $productSlug): Builder
+    {
+        return $query->when(
+            $productSlug,
+            fn (Builder $q) => $q->whereHas(
+                'licenses.product',
+                fn (Builder $q) => $q->where('slug', $productSlug)
+            )
         );
     }
 }

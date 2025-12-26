@@ -9,6 +9,7 @@ use App\Enums\EventEnum;
 use App\Enums\LicenseActionEnum;
 use App\Enums\LicenseStatusEnum;
 use App\Exceptions\InvalidLicenseActionException;
+use App\Exceptions\ProvisionLicenseException;
 use App\Helpers\LicenseKeyGenerator;
 use App\Models\Brand;
 use App\Models\License;
@@ -22,6 +23,8 @@ use Notification;
 
 readonly class BrandLicenseService
 {
+    private const int MAX_ALLOWABLE_PRODUCTS = 10;
+
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -30,56 +33,93 @@ readonly class BrandLicenseService
      */
     public function provision(Brand $brand, array $data): array
     {
-        $product = Product::query()
-            ->where('brand_id', $brand->id)
-            ->where('slug', $data['product_slug'])
-            ->firstOrFail();
-
-        DB::transaction(function () use ($brand, $data, $product, &$licenseKey) {
-
-            $licenseKey = LicenseKey::query()->firstOrCreate([
-                'customer_email' => $data['customer_email'],
-                'brand_id' => $brand->id,
-            ],
-                [
-                    'key' => (new LicenseKeyGenerator)->handle(),
-                ]);
-
-            $license = License::query()->firstOrCreate([
-                'license_key_id' => $licenseKey->id,
-                'product_id' => $product->id,
-            ],
-                [
-                    'status' => LicenseStatusEnum::Active->value,
-                    'expires_at' => $data['expires_at'] ?? null,
-                    'max_seats' => $data['max_seats'] ?? 1,
-                ]);
-
-            auditLog(
-                event: EventEnum::Created,
-                action: "License {$license->id} created",
-                actorType: ActorTypeEnum::Brand,
-                actorId: $brand->id,
-                objectType: License::class,
-                objectId: $license->id,
-                metadata: $data,
-                dispatchAfterCommit: true,
+        if (count($data['products']) > self::MAX_ALLOWABLE_PRODUCTS) {
+            throw new ProvisionLicenseException(
+                sprintf(
+                    'You are not allowed to provision licenses for more than %s products at the same time',
+                    self::MAX_ALLOWABLE_PRODUCTS
+                )
             );
-        });
+        }
+
+        $licenseKey = LicenseKey::query()->firstOrCreate([
+            'customer_email' => $data['customer_email'],
+            'brand_id' => $brand->id,
+        ],
+            [
+                'key' => (new LicenseKeyGenerator)->handle(),
+            ]);
+
+        $productNames = $this->createLicense($brand, $licenseKey, $data);
 
         Notification::route('mail', $data['customer_email'])
             ->notify(new NewLicenseKeyNotification(
                 licenseKey: $licenseKey->key,
                 customerEmail: $data['customer_email'],
-                productName: $product->name,
+                productNames: $productNames,
                 brandName: $brand->name,
             ));
 
         return [
             'licenseKey' => formatKey($licenseKey->key),
             'customerEmail' => $licenseKey->customer_email,
-            'productName' => $product->name,
+            'productNames' => $productNames,
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, string>
+     *
+     * @throws \Throwable
+     */
+    private function createLicense(Brand $brand, LicenseKey $licenseKey, array $data): array
+    {
+        $productNames = [];
+
+        DB::transaction(function () use ($brand, $data, $licenseKey, &$productNames) {
+            $products = $data['products'];
+            foreach ($products as $_product) {
+
+                $product = Product::query()
+                    ->where('brand_id', $brand->id)
+                    ->where('slug', $_product['product_slug'])
+                    ->first();
+
+                if (! $product) {
+                    throw new ProvisionLicenseException(
+                        "No product found with slug '{$_product['product_slug']}'",
+                        404
+                    );
+                }
+
+                $productNames[] = $product->name;
+
+                License::query()->updateOrCreate([
+                    'license_key_id' => $licenseKey->id,
+                    'product_id' => $product->id,
+                ],
+                    [
+                        'status' => LicenseStatusEnum::Active->value,
+                        'expires_at' => $_product['expires_at'] ?? null,
+                        'max_seats' => $_product['max_seats'] ?? 1,
+                    ]);
+
+            }
+
+            auditLog(
+                event: EventEnum::Created,
+                action: "LicenseKey({$licenseKey->id}) provisioned to Customer: {$data['customer_email']}",
+                actorType: ActorTypeEnum::Brand,
+                actorId: $brand->id,
+                objectType: LicenseKey::class,
+                objectId: $licenseKey->id,
+                metadata: $data,
+                dispatchAfterCommit: true,
+            );
+        });
+
+        return $productNames;
     }
 
     /**
