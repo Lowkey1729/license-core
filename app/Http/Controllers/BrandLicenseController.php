@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\Responses\SuccessResponse;
 use App\Exceptions\InvalidLicenseActionException;
 use App\Models\Brand;
 use App\Requests\FetchLicensesRequest;
 use App\Requests\ProvisionLicenseRequest;
 use App\Requests\UpdateLicenseStatusRequest;
 use App\Services\BrandLicenseService;
-use App\DTOs\Responses\SuccessResponse;
 use Illuminate\Contracts\Support\Responsable;
 use Random\RandomException;
 

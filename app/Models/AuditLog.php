@@ -24,6 +24,7 @@ class AuditLog extends \MongoDB\Laravel\Eloquent\Model
      * @var UnitEnum|string|null
      */
     protected $connection = 'mongodb';
+
     protected $table = 'audit_logs';
 
     protected $fillable = [

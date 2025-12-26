@@ -36,7 +36,6 @@ function auditLog(
     }
 }
 
-
 function newUniqueId(): string
 {
     return strtoupper(Str::replace('-', '', Str::uuid7()->toString()));

@@ -1,9 +1,8 @@
 <?php
 
-use App\Http\Middleware\ForceJsonResponse;
 use App\DTOs\Responses\FailureResponse;
+use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -31,7 +30,6 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-
         $exceptions->render(function (AuthenticationException $e, Request $request) {
             if ($request->wantsJson()) {
                 return new FailureResponse(
@@ -40,7 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 );
             }
         });
-
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
             if ($request->wantsJson()) {
@@ -59,6 +56,5 @@ return Application::configure(basePath: dirname(__DIR__))
                 );
             }
         });
-
 
     })->create();

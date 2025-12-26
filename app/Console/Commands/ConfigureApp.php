@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers\LicenseKeyGenerator;
 use App\Models\Brand;
 use App\Models\BrandApiKey;
 use App\Models\Product;
@@ -38,6 +37,7 @@ class ConfigureApp extends Command
 
     /**
      * Execute the console command.
+     *
      * @throws RandomException
      */
     public function handle(): int
@@ -59,7 +59,7 @@ class ConfigureApp extends Command
     {
         Brand::insert($this->brands);
 
-        $this->info('✅ Brands populated successfully (' . count($this->brands) . ')');
+        $this->info('✅ Brands populated successfully ('.count($this->brands).')');
     }
 
     protected function populateProducts(): void
@@ -96,31 +96,30 @@ class ConfigureApp extends Command
         $this->brands = [
             [
                 'id' => $id1 = newUniqueId(),
-                'name' => $name = "WP Rocket",
-                'slug' => Str::slug($name, "_"),
+                'name' => $name = 'WP Rocket',
+                'slug' => Str::slug($name, '_'),
                 'created_at' => $now,
-                'updated_at' => $now
+                'updated_at' => $now,
             ],
 
             [
                 'id' => $id2 = newUniqueId(),
-                'name' => $name = "Rank Math",
-                'slug' => Str::slug($name, "_"),
+                'name' => $name = 'Rank Math',
+                'slug' => Str::slug($name, '_'),
                 'created_at' => $now,
-                'updated_at' => $now
+                'updated_at' => $now,
             ],
 
             [
                 'id' => $id3 = newUniqueId(),
-                'name' => $name = "Imagify",
-                'slug' => Str::slug($name, "_"),
+                'name' => $name = 'Imagify',
+                'slug' => Str::slug($name, '_'),
                 'created_at' => $now,
-                'updated_at' => $now
+                'updated_at' => $now,
             ],
         ];
 
         $this->line('   → 3 brands prepared');
-
 
         $this->info('📦 Preparing products...');
         $this->products = [
@@ -131,7 +130,7 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id1,
                     'created_at' => $now,
-                    'updated_at' => $now
+                    'updated_at' => $now,
                 ],
                 [
                     'id' => newUniqueId(),
@@ -139,7 +138,7 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id1,
                     'created_at' => $now,
-                    'updated_at' => $now
+                    'updated_at' => $now,
                 ],
 
                 [
@@ -148,8 +147,8 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id1,
                     'created_at' => $now,
-                    'updated_at' => $now
-                ]
+                    'updated_at' => $now,
+                ],
             ],
 
             $id2 => [
@@ -159,7 +158,7 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id2,
                     'created_at' => $now,
-                    'updated_at' => $now
+                    'updated_at' => $now,
                 ],
                 [
                     'id' => newUniqueId(),
@@ -167,7 +166,7 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id2,
                     'created_at' => $now,
-                    'updated_at' => $now
+                    'updated_at' => $now,
                 ],
                 [
                     'id' => newUniqueId(),
@@ -175,7 +174,7 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id2,
                     'created_at' => $now,
-                    'updated_at' => $now
+                    'updated_at' => $now,
                 ],
             ],
 
@@ -186,7 +185,7 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id3,
                     'created_at' => $now,
-                    'updated_at' => $now
+                    'updated_at' => $now,
                 ],
                 [
                     'id' => newUniqueId(),
@@ -194,7 +193,7 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id3,
                     'created_at' => $now,
-                    'updated_at' => $now
+                    'updated_at' => $now,
                 ],
                 [
                     'id' => newUniqueId(),
@@ -202,16 +201,15 @@ class ConfigureApp extends Command
                     'slug' => Str::slug($productName, '_'),
                     'brand_id' => $id3,
                     'created_at' => $now,
-                    'updated_at' => $now
+                    'updated_at' => $now,
                 ],
-            ]
+            ],
         ];
 
-        $this->line("   → 9 products prepared");
+        $this->line('   → 9 products prepared');
 
         $this->line('────────────────────────────────────────');
     }
-
 
     /**
      * @throws RandomException
@@ -225,19 +223,19 @@ class ConfigureApp extends Command
 
             BrandApiKey::query()->create([
                 'brand_id' => $brand['id'],
-                'api_key' => $apiKey
+                'api_key' => $apiKey,
             ]);
 
             $apiKeys[] = [
                 'brand' => $brand['name'],
-                'api_key' => $apiKey
+                'api_key' => $apiKey,
             ];
         }
 
         $this->info("\n🎉 X-BRAND-API-KEY Keys Generated Successfully! 🎉\n");
 
         $headers = ['Brand', 'API Key'];
-        $rows = array_map(fn($item) => [$item['brand'], $item['api_key']], $apiKeys);
+        $rows = array_map(fn ($item) => [$item['brand'], $item['api_key']], $apiKeys);
 
         $this->table($headers, $rows);
     }
