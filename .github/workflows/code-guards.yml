@@ -68,7 +68,7 @@ jobs:
           done
 
       - name: Run static analysis check
-        run:  ./vendor/bin/phpstan analyse --memory-limit=2G --generate-baseline -c phpstan.neon
+        run:  ./vendor/bin/phpstan analyse --memory-limit=2G --generate-baseline --allow-empty-baseline -c phpstan.neon
 
       - name: Run Tests
         env:
