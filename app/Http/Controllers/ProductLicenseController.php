@@ -9,7 +9,7 @@ use App\Requests\ActivateLicenseRequest;
 use App\Requests\CheckLicenseRequest;
 use App\Requests\DeActivateLicenseRequest;
 use App\Services\ProductLicenseService;
-use Domain\Shared\DTOs\Responses\SuccessResponse;
+use App\DTOs\Responses\SuccessResponse;
 use Illuminate\Contracts\Support\Responsable;
 
 class ProductLicenseController extends Controller

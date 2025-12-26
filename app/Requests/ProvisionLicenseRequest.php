@@ -12,10 +12,10 @@ class ProvisionLicenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email'],
+            'customer_email' => ['required', 'email'],
             'product_slug' => ['required', 'string'],
-            'expires_at' => ['required', 'date'],
-            'max_seats' => ['required', 'integer', 'min:1'],
+            'expires_at' => ['nullable', 'date'],
+            'max_seats' => ['nullable', 'integer', 'min:1'],
         ];
     }
 

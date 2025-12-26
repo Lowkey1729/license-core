@@ -8,7 +8,7 @@ use App\Requests\FetchLicensesRequest;
 use App\Requests\ProvisionLicenseRequest;
 use App\Requests\UpdateLicenseStatusRequest;
 use App\Services\BrandLicenseService;
-use Domain\Shared\DTOs\Responses\SuccessResponse;
+use App\DTOs\Responses\SuccessResponse;
 use Illuminate\Contracts\Support\Responsable;
 use Random\RandomException;
 
