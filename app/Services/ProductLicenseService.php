@@ -22,15 +22,7 @@ readonly class ProductLicenseService
      */
     public function activate(array $data): void
     {
-        $licenseKey = LicenseKey::query()
-            ->with(['licenses', 'licenses.product'])
-            ->whereRelation('licenses.product', 'slug', $data['product_slug'])
-            ->where('key', $this->licenseKeyAES->encrypt($data['license_key']))
-            ->first();
-
-        if (! $licenseKey) {
-            throw new LicenseException('Invalid license key or no license found for this product', 403);
-        }
+        $licenseKey = $this->getLicenseKey($data);
 
         $license = $licenseKey->licenses->first();
 
@@ -49,14 +41,14 @@ readonly class ProductLicenseService
 
         if ($license->activations()->count() >= $license->max_seats) {
             throw new LicenseException(
-                'You have reached the maximum number of active installations for this license',
+                'You have reached the maximum number of activations for this license',
                 409
             );
         }
 
         $activation = $license->activations()->create([
             'fingerprint' => $data['fingerprint'],
-            'platform_info' => $data['platform_info'],
+            'platform_info' => $data['platform_info'] ?? null,
         ]);
 
         auditLog(
@@ -76,15 +68,7 @@ readonly class ProductLicenseService
      */
     public function deactivate(array $data): void
     {
-        $licenseKey = LicenseKey::query()
-            ->with(['licenses', 'licenses.product'])
-            ->whereRelation('licenses.product', 'slug', $data['product_slug'])
-            ->where('key', $this->licenseKeyAES->encrypt($data['license_key']))
-            ->first();
-
-        if (! $licenseKey) {
-            throw new LicenseException('Invalid license key or no license found for this product', 403);
-        }
+        $licenseKey = $this->getLicenseKey($data);
 
         $license = $licenseKey->licenses->first();
 
@@ -117,15 +101,7 @@ readonly class ProductLicenseService
      */
     public function checkStatus(array $data): array
     {
-        $licenseKey = LicenseKey::query()
-            ->with(['licenses', 'licenses.product'])
-            ->whereRelation('licenses.product', 'slug', $data['product_slug'])
-            ->where('key', $this->licenseKeyAES->encrypt($data['license_key']))
-            ->first();
-
-        if (! $licenseKey) {
-            throw new LicenseException('Invalid license key or no license found for this product', 403);
-        }
+        $licenseKey = $this->getLicenseKey($data);
 
         $licenseKey->load(['licenses.product', 'licenses' => function ($query) {
             $query->withCount('activations');
@@ -148,5 +124,27 @@ readonly class ProductLicenseService
                 ];
             }),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     *
+     * @throws LicenseException
+     */
+    protected function getLicenseKey(array $data): LicenseKey
+    {
+        $data['license_key'] = str_replace('-', '', $data['license_key']);
+
+        $licenseKey = LicenseKey::query()
+            ->with(['licenses', 'licenses.product'])
+            ->whereRelation('licenses.product', 'slug', $data['product_slug'])
+            ->where('key', $this->licenseKeyAES->encrypt($data['license_key']))
+            ->first();
+
+        if (! $licenseKey) {
+            throw new LicenseException('Invalid license key or no license found for this product', 403);
+        }
+
+        return $licenseKey;
     }
 }

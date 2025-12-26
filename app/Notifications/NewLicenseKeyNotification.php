@@ -39,7 +39,7 @@ class NewLicenseKeyNotification extends Notification implements ShouldQueue
             ->view(
                 'emails.new-license-key',
                 [
-                    'licenseKey' => $this->licenseKey,
+                    'licenseKey' => formatKey($this->licenseKey),
                     'brand' => $this->brandName,
                     'product' => $this->productName,
                     'customerEmail' => $this->customerEmail,

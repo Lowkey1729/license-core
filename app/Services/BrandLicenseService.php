@@ -51,8 +51,8 @@ readonly class BrandLicenseService
             ],
                 [
                     'status' => LicenseStatusEnum::Active->value,
-                    'expires_at' => $data['expires_at'],
-                    'max_seats' => $data['max_seats'],
+                    'expires_at' => $data['expires_at'] ?? null,
+                    'max_seats' => $data['max_seats'] ?? 1,
                 ]);
 
             auditLog(
@@ -62,6 +62,7 @@ readonly class BrandLicenseService
                 actorId: $brand->id,
                 objectType: License::class,
                 objectId: $license->id,
+                metadata: $data,
                 dispatchAfterCommit: true,
             );
         });
@@ -75,8 +76,9 @@ readonly class BrandLicenseService
             ));
 
         return [
-            'licenseKey' => $licenseKey->key,
+            'licenseKey' => formatKey($licenseKey->key),
             'customerEmail' => $licenseKey->customer_email,
+            'productName' => $product->name,
         ];
     }
 
@@ -96,10 +98,10 @@ readonly class BrandLicenseService
             LicenseActionEnum::Suspend->value => $license->status = LicenseStatusEnum::Suspended->value,
             LicenseActionEnum::Resume->value => $license->status = LicenseStatusEnum::Active->value,
             LicenseActionEnum::Cancel->value => $license->status = LicenseStatusEnum::Cancelled->value,
-            LicenseActionEnum::Renew->value => function (License $license, array $data) {
+            LicenseActionEnum::Renew->value => (function () use ($license, $data) {
                 $license->expires_at = $data['expires_at'];
                 $license->status = LicenseStatusEnum::Active->value;
-            },
+            })(),
             default => throw new InvalidLicenseActionException("License action '{$data['action']}' is not supported."),
         };
 
