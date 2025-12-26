@@ -80,7 +80,7 @@
         ],
 
         "analyze": [
-            "vendor/bin/phpstan analyse --memory-limit=2G --generate-baseline --allow-empty-baseline -c phpstan.neon"
+            "vendor/bin/phpstan analyse --memory-limit=2G -c phpstan.neon"
         ],
 
         "pint": [

@@ -1,6 +1,6 @@
 <?php
 
-namespace Domain\Shared\DTOs\Responses;
+namespace App\DTOs\Responses;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
@@ -39,7 +39,7 @@ class SuccessResponse extends Data
             }
         }
 
-        $var['result']['data'] = $this->data;
+        $var['data'] = $this->data;
 
         return response()->json(
             $var,

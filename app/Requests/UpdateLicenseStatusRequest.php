@@ -2,7 +2,9 @@
 
 namespace App\Requests;
 
+use App\Enums\LicenseActionEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateLicenseStatusRequest extends FormRequest
 {
@@ -12,8 +14,8 @@ class UpdateLicenseStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'action' => ['required', 'email'],
-            'expires_at' => ['required', 'date'],
+            'action' => ['required', 'string', Rule::in(LicenseActionEnum::cases())],
+            'expires_at' => ['required_if:action,renew', 'date'],
         ];
     }
 

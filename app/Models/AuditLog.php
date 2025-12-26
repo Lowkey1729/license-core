@@ -16,7 +16,7 @@ use UnitEnum;
  * @property int $object_id
  * @property array<string, mixed>|null $metadata
  */
-class AuditLog extends Model
+class AuditLog extends \MongoDB\Laravel\Eloquent\Model
 {
     /**
      * The connection name for the model.
@@ -24,6 +24,8 @@ class AuditLog extends Model
      * @var UnitEnum|string|null
      */
     protected $connection = 'mongodb';
+
+    protected $table = 'audit_logs';
 
     protected $fillable = [
         'event',

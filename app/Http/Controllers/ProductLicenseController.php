@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\DTOs\Responses\SuccessResponse;
 use App\Exceptions\LicenseException;
 use App\Requests\ActivateLicenseRequest;
 use App\Requests\CheckLicenseRequest;
 use App\Requests\DeActivateLicenseRequest;
 use App\Services\ProductLicenseService;
-use Domain\Shared\DTOs\Responses\SuccessResponse;
 use Illuminate\Contracts\Support\Responsable;
 
 class ProductLicenseController extends Controller

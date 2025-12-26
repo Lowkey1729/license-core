@@ -36,12 +36,14 @@ function auditLog(
     }
 }
 
-
 function newUniqueId(): string
 {
     return strtoupper(Str::replace('-', '', Str::uuid7()->toString()));
 }
 
+/**
+ * @param  positive-int  $length
+ */
 function formatKey(string $raw, int $length = 4): string
 {
     return implode('-', str_split($raw, $length));
