@@ -69,7 +69,7 @@ readonly class BrandLicenseService
 
     /**
      * @param  array<string, mixed>  $data
-     * @return array<string, string>
+     * @return array<int, string>
      *
      * @throws \Throwable
      */

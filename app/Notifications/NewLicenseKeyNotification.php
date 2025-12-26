@@ -15,6 +15,7 @@ class NewLicenseKeyNotification extends Notification implements ShouldQueue
     public function __construct(
         protected readonly string $licenseKey,
         protected readonly string $customerEmail,
+        /** @var array<int, string> $productNames */
         protected readonly array $productNames,
         protected readonly string $brandName,
     ) {}

@@ -40,14 +40,15 @@ class LicenseKey extends Model
         );
     }
 
+    /**
+     * @param  Builder<LicenseKey>  $query
+     * @return Builder<LicenseKey>
+     */
     public function scopeForProduct(Builder $query, ?string $productSlug): Builder
     {
         return $query->when(
             $productSlug,
-            fn (Builder $q) => $q->whereHas(
-                'licenses.product',
-                fn (Builder $q) => $q->where('slug', $productSlug)
-            )
+            fn (Builder $q) => $q->whereRelation('licenses.product', 'slug', $productSlug)
         );
     }
 }

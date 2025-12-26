@@ -62,14 +62,15 @@ class License extends Model
         return true;
     }
 
+    /**
+     * @param  Builder<License>  $query
+     * @return Builder<License>
+     */
     public function scopeForProduct(Builder $query, ?string $productSlug): Builder
     {
         return $query->when(
             $productSlug,
-            fn (Builder $q) => $q->whereHas(
-                'product',
-                fn (Builder $q) => $q->where('slug', $productSlug)
-            )
+            fn (Builder $q) => $q->whereRelation('product', 'slug', $productSlug)
         );
     }
 }
