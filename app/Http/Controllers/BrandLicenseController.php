@@ -40,7 +40,7 @@ class BrandLicenseController extends Controller
         $response = $this->licenseService->provision($brand, $request->validated());
 
         return new SuccessResponse(
-            message: 'License provisioned successfully',
+            message: 'License(s) provisioned successfully',
             data: $response,
             httpStatusCode: 201
         );

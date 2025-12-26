@@ -136,9 +136,15 @@ readonly class ProductLicenseService
         $data['license_key'] = str_replace('-', '', $data['license_key']);
 
         $licenseKey = LicenseKey::query()
-            ->with(['licenses', 'licenses.product'])
-            ->whereRelation('licenses.product', 'slug', $data['product_slug'])
             ->where('key', $this->licenseKeyAES->encrypt($data['license_key']))
+            ->forProduct($data['product_slug'] ?? null)
+            ->with([
+                'licenses' => fn ($q) => $q->forProduct($data['product_slug'] ?? null),
+                'licenses.product',
+            ])
+            ->when(isset($data['product_slug']), function ($query) use ($data) {
+                $query->whereRelation('licenses.product', 'slug', $data['product_slug']);
+            })
             ->first();
 
         if (! $licenseKey) {
