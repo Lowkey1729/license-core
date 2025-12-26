@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
+      # MySQL Service
       mysql:
         image: mysql:8.0
         ports:
@@ -21,6 +22,17 @@ jobs:
           --health-timeout=5s
           --health-retries=3
 
+      # MongoDB Service
+      mongo:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -30,7 +42,8 @@ jobs:
         with:
           php-version: '8.3'
           tools: composer:v2
-          extensions: pdo, pdo_mysql, mysql
+          # Added 'mongodb' to the list of extensions
+          extensions: pdo, pdo_mysql, mysql, mongodb
 
       - name: Get composer cache dir
         id: composer-cache-dir
@@ -59,24 +72,36 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
-      - name: Wait for MySQL
+      - name: Wait for Databases
         run: |
+          # Wait for MySQL
           until mysqladmin ping -h 127.0.0.1 -u root --silent; do
             echo "Waiting for MySQL..."
             sleep 2
           done
+          # MongoDB is handled by the service health-check options,
+          # but a brief pause ensures connections are ready to accept writes.
+          sleep 2
 
       - name: Run static analysis check
         run:  ./vendor/bin/phpstan analyse --memory-limit=2G -c phpstan.neon
 
       - name: Run Tests
         env:
+
           DB_DATABASE: license_core_test
           DB_CONNECTION: mysql_testing
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
           DB_USERNAME: root
           DB_PASSWORD: ''
+
+
+          MONGODB_HOST: 127.0.0.1
+          MONGODB_PORT: 27017
+          MONGODB_DATABASE: license_core_test_mongo
+
+          # App Secrets
           LICENSE_AES_SECRET: "license_aes_secret"
           LICENSE_AES_IV: "cf5879a288df134f"
           BRAND_AES_SECRET: "brand_aes_secret"
@@ -86,4 +111,3 @@ jobs:
 
       - name: Code style fixes
         run: ./vendor/bin/pint
-
