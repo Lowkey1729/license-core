@@ -97,7 +97,7 @@ group.one needs a centralized License Service that acts as a single source of tr
 
 2. **Activation Model**
     - Activations tied to licenses, not license keys
-    - Instance identifier (URL, machine ID) uniqueness enforced
+    - fingerprint (URL, machine ID) uniqueness enforced
     - Seat counting at license level
 
 3. **API Security**
@@ -168,40 +168,31 @@ audit_logs
 
 ### Brand API (Internal - Requires API Key)
 
-**Authentication:** `X-Brand-API-Key` header
+**Authentication:** `X-BRAND-API-KEY` header
 
 #### 1. Provision License (US1)
 
 ```http
 POST /api/v1/brand/licenses
-X-Brand-API-Key: {brand_api_key}
+X-BRAND-API-KEY: {brand_api_key}
 Content-Type: application/json
 
 {
   "customer_email": "user@example.com",
   "product_slug": "rankmath-pro",
   "expires_at": "2025-12-31T23:59:59Z",  // optional, null = lifetime
-  "max_seats": 3,  // optional, overrides product default
-  "license_key": "EXISTING-KEY"  // optional, adds to existing key
+  "max_seats": 3  // optional, overrides product default
 }
 
-Response 201:
-{
-  "license_key": "RNKM-XXXX-XXXX-XXXX",
-  "license_id": 123,
-  "product": "rankmath-pro",
-  "status": "valid",
-  "expires_at": "2025-12-31T23:59:59Z",
-  "max_seats": 3,
-  "created_at": "2024-12-25T10:00:00Z"
-}
+Response 201
 ```
 
 #### 2. Update License Lifecycle (US2)
 
 ```http
-PATCH /api/v1/brand/licenses/{licenseId}
-X-Brand-API-Key: {brand_api_key}
+PATCH /api/v1/brand/licenses/{id}
+X-BRAND-API-KEY: {brand_api_key}
+Content-Type: application/json
 
 // Renew
 {
@@ -224,141 +215,65 @@ X-Brand-API-Key: {brand_api_key}
   "action": "cancel"
 }
 
-Response 200:
-{
-  "license_id": 123,
-  "status": "suspended",
-  "updated_at": "2024-12-25T10:30:00Z"
-}
+Response 200
 ```
 
 #### 3. List Licenses by Email (US6)
 
 ```http
-GET /api/v1/brand/licenses/by-email/{email}
-X-Brand-API-Key: {brand_api_key}
+GET /api/v1/brand/licenses
+X-BRAND-API-KEY: {brand_api_key}
+Content-Type: application/json
 
-Response 200:
 {
-  "customer_email": "user@example.com",
-  "licenses": [
-    {
-      "brand": "rankmath",
-      "license_key": "RNKM-XXXX-XXXX-XXXX",
-      "products": [
-        {
-          "product_slug": "rankmath-pro",
-          "license_id": 123,
-          "status": "valid",
-          "expires_at": "2025-12-31T23:59:59Z",
-          "activations": 2,
-          "max_seats": 3
-        }
-      ]
-    },
-    {
-      "brand": "wprocket",
-      "license_key": "WPRK-YYYY-YYYY-YYYY",
-      "products": [
-        {
-          "product_slug": "wprocket",
-          "license_id": 456,
-          "status": "valid",
-          "expires_at": null,
-          "activations": 1,
-          "max_seats": 1
-        }
-      ]
-    }
-  ]
+  "email": "test@gmail.com"
 }
+
+Response 200
 ```
 
-### Product API (External - License Key Auth)
+### Product API
 
 #### 4. Activate License (US3)
 
 ```http
-POST /api/v1/product/activate
+POST /api/v1/product/licenses/activate
 Content-Type: application/json
 
 {
   "license_key": "RNKM-XXXX-XXXX-XXXX",
   "product_slug": "rankmath-pro",
-  "instance_identifier": "https://mysite.com"
+  "fingerprint": "https://mysite.com",
+  "platform_info": ""
 }
 
-Response 200:
-{
-  "success": true,
-  "license_id": 123,
-  "activation_id": 789,
-  "status": "valid",
-  "expires_at": "2025-12-31T23:59:59Z",
-  "seats_used": 3,
-  "seats_available": 3
-}
+Response 200
 
-Response 409 (Seat limit exceeded):
-{
-  "success": false,
-  "error": "seat_limit_exceeded",
-  "message": "No available seats. 3/3 seats in use.",
-  "seats_used": 3,
-  "seats_available": 3
-}
+Response 409 (Seat limit exceeded)
 ```
 
 #### 5. Check License Status (US4)
 
 ```http
 GET /api/v1/product/check/{licenseKey}
+Content-Type: application/json
 
-Response 200:
-{
-  "license_key": "RNKM-XXXX-XXXX-XXXX",
-  "customer_email": "user@example.com",
-  "brand": "rankmath",
-  "entitlements": [
-    {
-      "product_slug": "rankmath-pro",
-      "license_id": 123,
-      "status": "valid",
-      "expires_at": "2025-12-31T23:59:59Z",
-      "seats_used": 2,
-      "seats_available": 3
-    },
-    {
-      "product_slug": "content-ai",
-      "license_id": 124,
-      "status": "valid",
-      "expires_at": "2025-12-31T23:59:59Z",
-      "seats_used": 0,
-      "seats_available": null
-    }
-  ]
-}
+Response 200
 ```
 
 #### 6. Deactivate Seat (US5)
 
 ```http
-DELETE /api/v1/product/activate
+DELETE /api/v1/product/licenses/activate
 Content-Type: application/json
 
 {
   "license_key": "RNKM-XXXX-XXXX-XXXX",
   "product_slug": "rankmath-pro",
-  "instance_identifier": "https://mysite.com"
+  "fingerprint": "https://mysite.com"
 }
 
-Response 200:
-{
-  "success": true,
-  "message": "Activation removed",
-  "seats_used": 2,
-  "seats_available": 3
-}
+Response 200
 ```
 
 ---
@@ -370,8 +285,20 @@ Response 200:
 ```
 license-core/
 ├── app/
+│   ├── Concerns/
+│   │   ├── ExceptionResponseTrait.php
+│   │   ├── HasUUIDs.php
+|   |
 │   ├── Models/
-│   │   ├── Brand.php
+│   │   ├── Activation.php
+│   │   ├── Product.php
+│   │   ├── LicenseKey.php
+│   │   ├── License.php
+│   │   ├── Activation.php
+│   │   ├── BrandApiKey.php
+│   │   └── AuditLog.php
+│   ├── Models/
+│   │   ├── Activation.php
 │   │   ├── Product.php
 │   │   ├── LicenseKey.php
 │   │   ├── License.php
@@ -395,8 +322,6 @@ license-core/
 │   │   ├── SeatLimitExceededException.php
 │   │   ├── LicenseNotFoundException.php
 │   │   └── InvalidLicenseStatusException.php
-│   └── Observers/
-│       └── LicenseObserver.php
 ├── database/
 │   ├── migrations/
 │   └── seeders/

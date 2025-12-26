@@ -1,0 +1,88 @@
+name: Tests
+
+on:
+  pull_request:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_DATABASE: onebanq_test
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup PHP and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: pdo, pdo_mysql, mysql
+
+      - name: Get composer cache dir
+        id: composer-cache-dir
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          path: ${{ steps.composer-cache-dir.outputs.dir }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Validate composer files
+        run: composer validate --strict
+
+      - name: Install Dependencies
+        run: |
+          if ! composer install -q --no-interaction --prefer-dist; then
+            echo "composer install failed, trying composer update..."
+            composer update -q --no-interaction --prefer-dist
+          fi
+
+      - name: Prep Application
+        run: |
+          mkdir -p storage/onebanq-app storage/onebanq-arca-keys
+          touch storage/onebanq-app/{app.pem,app.pem.pub,mobile-app.pem,mobile-app.pem.pub}
+          touch storage/onebanq-arca-keys/{arca.pem.pub,obq-arca.pem,obq-arca.pem.pub}
+          cp .env.example .env
+          php artisan key:generate
+          php artisan generate:test-keys
+
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -u root --silent; do
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Run static analysis check
+        run:  ./vendor/bin/phpstan analyse --memory-limit=2G --generate-baseline -c phpstan.neon
+
+      - name: Run Tests
+        env:
+          DB_DATABASE: onebanq_test
+          DB_CONNECTION: mysql_testing
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+        run: ./vendor/bin/pest --parallel
+
+      - name: Code style fixes
+        run: ./vendor/bin/pint
+
