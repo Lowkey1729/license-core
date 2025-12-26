@@ -13,7 +13,6 @@ class CheckLicenseRequest extends FormRequest
     {
         return [
             'license_key' => ['required', 'string'],
-            'product_slug' => ['required', 'string'],
         ];
     }
 

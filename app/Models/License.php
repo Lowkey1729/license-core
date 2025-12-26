@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Concerns\HasUUIDs;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -59,5 +60,17 @@ class License extends Model
         }
 
         return true;
+    }
+
+    /**
+     * @param  Builder<License>  $query
+     * @return Builder<License>
+     */
+    public function scopeForProduct(Builder $query, ?string $productSlug): Builder
+    {
+        return $query->when(
+            $productSlug,
+            fn (Builder $q) => $q->whereRelation('product', 'slug', $productSlug)
+        );
     }
 }

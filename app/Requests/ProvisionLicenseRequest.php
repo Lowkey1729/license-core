@@ -13,9 +13,10 @@ class ProvisionLicenseRequest extends FormRequest
     {
         return [
             'customer_email' => ['required', 'email'],
-            'product_slug' => ['required', 'string'],
-            'expires_at' => ['nullable', 'date'],
-            'max_seats' => ['nullable', 'integer', 'min:1'],
+            'products' => ['required', 'array'],
+            'products.*.product_slug' => ['required', 'string'],
+            'products.*.expires_at' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'products.*.max_seats' => ['nullable', 'integer', 'min:1'],
         ];
     }
 

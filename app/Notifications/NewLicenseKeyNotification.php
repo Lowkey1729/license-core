@@ -15,7 +15,8 @@ class NewLicenseKeyNotification extends Notification implements ShouldQueue
     public function __construct(
         protected readonly string $licenseKey,
         protected readonly string $customerEmail,
-        protected readonly string $productName,
+        /** @var array<int, string> $productNames */
+        protected readonly array $productNames,
         protected readonly string $brandName,
     ) {}
 
@@ -35,13 +36,13 @@ class NewLicenseKeyNotification extends Notification implements ShouldQueue
     public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("Your license key for {$this->productName}")
+            ->subject('Your license key is ready')
             ->view(
                 'emails.new-license-key',
                 [
                     'licenseKey' => formatKey($this->licenseKey),
                     'brand' => $this->brandName,
-                    'product' => $this->productName,
+                    'product' => implode(', ', $this->productNames),
                     'customerEmail' => $this->customerEmail,
                 ]
             );
