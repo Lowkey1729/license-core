@@ -118,6 +118,18 @@ return [
             'dsn' => env('MONGODB_URI', 'mongodb://localhost:27017'),
             'database' => env('MONGODB_DATABASE', 'laravel_app'),
         ],
+
+        'mysql_testing' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST', 'localhost'),
+            'database' => env('DB_DATABASE', 'license_core_test_db'),
+            'username' => env('DB_USERNAME', 'homestead'),
+            'password' => env('DB_PASSWORD', 'secret-2'),
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+        ],
     ],
 
     /*

@@ -26,7 +26,6 @@ beforeEach(function () {
         'api_key' => $this->apiKey,
     ]);
 
-    // Store headers to avoid repetition in every request
     $this->headers = ['X-BRAND-API-KEY' => $this->apiKey];
 });
 
@@ -99,7 +98,6 @@ describe('Provision Licenses', function () {
 
 describe('Update License Lifecycle', function () {
 
-    // Helper to setup a standard license for update tests
     $createLicense = function (Brand $brand, string $status = LicenseStatusEnum::Active->value) {
         $key = LicenseKey::create([
             'brand_id' => $brand->id,
@@ -116,7 +114,7 @@ describe('Update License Lifecycle', function () {
         return License::create([
             'status' => $status,
             'expires_at' => now()->addYear(),
-            'license_key_id' => $key->id, // Fixed: Using ID, not Key string
+            'license_key_id' => $key->id,
             'product_id' => $product->id,
             'max_seats' => 5,
         ]);
@@ -147,10 +145,8 @@ describe('Update License Lifecycle', function () {
     test('it returns 404 when trying to update another brands license', function () use ($createLicense) {
         $otherBrand = Brand::create(['name' => 'Brand 2', 'slug' => 'brand_2']);
 
-        // Create a license belonging to the OTHER brand
         $otherLicense = $createLicense($otherBrand);
 
-        // Attempt update using THIS brand's API key
         $this->patchJson(
             route("brand.licenses.update", ["id" => $otherLicense->id]),
             ['action' => LicenseActionEnum::Suspend->value],
@@ -232,7 +228,6 @@ describe('Fetch Licenses', function () {
             'name' => 'Pro Pack',
         ]);
 
-        // Attach license to target
         License::create([
             'status' => LicenseStatusEnum::Active->value,
             'license_key_id' => $targetKey->id,
