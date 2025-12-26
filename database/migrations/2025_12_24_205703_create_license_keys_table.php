@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('license_keys', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('brand_id')->constrained();
+            $table->foreignUuid('brand_id');
             $table->text('key');
             $table->string('customer_email');
             $table->timestamps();

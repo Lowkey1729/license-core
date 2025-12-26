@@ -34,6 +34,7 @@ class LicenseKey extends Model
     protected function key(): Attribute
     {
         return Attribute::make(
+            get: fn (?string $value) => $value ? resolve(LicenseKeyAESEncryption::class)->decrypt($value) : null,
             set: fn (string $value) => resolve(LicenseKeyAESEncryption::class)->encrypt($value),
         );
     }
