@@ -45,6 +45,6 @@ class ProductLicenseController extends Controller
     {
         $response = $this->productLicenseService->checkStatus($request->validated());
 
-        return new SuccessResponse(message: '`License checked successfully.', data: $response);
+        return new SuccessResponse(message: 'License checked successfully.', data: $response);
     }
 }

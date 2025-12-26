@@ -2,6 +2,7 @@
 
 use App\Enums\LicenseActionEnum;
 use App\Enums\LicenseStatusEnum;
+use App\Helpers\BrandApiKeyAESEncryption;
 use App\Models\Brand;
 use App\Models\BrandApiKey;
 use App\Models\License;
@@ -26,7 +27,9 @@ beforeEach(function () {
         'api_key' => $this->apiKey,
     ]);
 
+
     $this->headers = ['X-BRAND-API-KEY' => $this->apiKey];
+
 });
 
 describe('Provision Licenses', function () {
