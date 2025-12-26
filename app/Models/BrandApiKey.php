@@ -33,7 +33,7 @@ class BrandApiKey extends Model
     protected function apiKey(): Attribute
     {
         return Attribute::make(
-            get: fn (?string $value) => $value ? resolve(BrandApiKeyAESEncryption::class)->decrypt($value) : null,
+            get: fn (string $value) => resolve(BrandApiKeyAESEncryption::class)->decrypt($value),
             set: fn (string $value) => resolve(BrandApiKeyAESEncryption::class)->encrypt($value),
         );
     }
