@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InvalidLicenseActionException;
 use App\Models\Brand;
 use App\Requests\FetchLicensesRequest;
 use App\Requests\ProvisionLicenseRequest;
@@ -36,11 +37,18 @@ class BrandLicenseController extends Controller
         /** @var Brand $brand */
         $brand = $request->brand;
 
-        $this->licenseService->provision($brand, $request->validated());
+        $response = $this->licenseService->provision($brand, $request->validated());
 
-        return new SuccessResponse(message: 'License provisioned successfully', httpStatusCode: 201);
+        return new SuccessResponse(
+            message: 'License provisioned successfully',
+            data: $response,
+            httpStatusCode: 201
+        );
     }
 
+    /**
+     * @throws InvalidLicenseActionException
+     */
     public function update(UpdateLicenseStatusRequest $request, string $id): Responsable
     {
         /** @var Brand $brand */

@@ -22,7 +22,7 @@ class BrandApiKeyAuth
 
         if (is_null($key)) {
             Log::warning('X-BRAND-API-KEY not set');
-            throw new InvalidBrandKeyException('Authentication error', 401);
+            throw new InvalidBrandKeyException('Authentication error', 403);
         }
 
         $encryptedKey = resolve(BrandApiKeyAESEncryption::class)->encrypt($key);
@@ -30,7 +30,7 @@ class BrandApiKeyAuth
         $brandApiKey = BrandApiKey::query()->where('api_key', $encryptedKey)->first();
         if (! $brandApiKey) {
             Log::warning('BrandApiKey not found');
-            throw new InvalidBrandKeyException('Authentication error', 401);
+            throw new InvalidBrandKeyException('Authentication error', 403);
         }
 
         $brandApiKey->load('brand');

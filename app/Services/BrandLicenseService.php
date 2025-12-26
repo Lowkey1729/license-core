@@ -14,25 +14,28 @@ use App\Models\Brand;
 use App\Models\License;
 use App\Models\LicenseKey;
 use App\Models\Product;
+use App\Notifications\NewLicenseKeyNotification;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Notification;
 
 readonly class BrandLicenseService
 {
     /**
      * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
      *
      * @throws \Throwable
      */
-    public function provision(Brand $brand, array $data): void
+    public function provision(Brand $brand, array $data): array
     {
         $product = Product::query()
             ->where('brand_id', $brand->id)
             ->where('slug', $data['product_slug'])
             ->firstOrFail();
 
-        DB::transaction(function () use ($brand, $data, $product) {
+        DB::transaction(function () use ($brand, $data, $product, &$licenseKey) {
 
             $licenseKey = LicenseKey::query()->firstOrCreate([
                 'customer_email' => $data['customer_email'],
@@ -62,10 +65,25 @@ readonly class BrandLicenseService
                 dispatchAfterCommit: true,
             );
         });
+
+        Notification::route('mail', $data['customer_email'])
+            ->notify(new NewLicenseKeyNotification(
+                licenseKey: $licenseKey->key,
+                customerEmail: $data['customer_email'],
+                productName: $product->name,
+                brandName: $brand->name,
+            ));
+
+        return [
+            'licenseKey' => $licenseKey->key,
+            'customerEmail' => $licenseKey->customer_email,
+        ];
     }
 
     /**
      * @param  array<string, mixed>  $data
+     *
+     * @throws InvalidLicenseActionException
      */
     public function updateLicenseStatus(Brand $brand, string $id, array $data): void
     {
@@ -107,7 +125,7 @@ readonly class BrandLicenseService
         return License::query()
             ->whereRelation('licenseKey', 'brand_id', $brand->id)
             ->when(isset($data['email']), function (Builder $query) use ($data) {
-                $query->whereRelation('licenseKey', 'email', $data['email']);
+                $query->whereRelation('licenseKey', 'customer_email', $data['email']);
             })
             ->paginate();
     }

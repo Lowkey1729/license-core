@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('brand_api_keys', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->text('api_key');
+            $table->foreignUuid("brand_id");
             $table->timestamps();
         });
     }

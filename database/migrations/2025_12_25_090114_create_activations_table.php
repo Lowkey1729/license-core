@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('activations', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('license_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('license_id');
             $table->string('fingerprint');
             $table->string('platform_info')->nullable();
             $table->timestamp('deleted_at')->nullable();
