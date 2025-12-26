@@ -98,7 +98,7 @@ readonly class BrandLicenseService
             LicenseActionEnum::Suspend->value => $license->status = LicenseStatusEnum::Suspended->value,
             LicenseActionEnum::Resume->value => $license->status = LicenseStatusEnum::Active->value,
             LicenseActionEnum::Cancel->value => $license->status = LicenseStatusEnum::Cancelled->value,
-            LicenseActionEnum::Renew->value => (function() use($license, $data) {
+            LicenseActionEnum::Renew->value => (function () use ($license, $data) {
                 $license->expires_at = $data['expires_at'];
                 $license->status = LicenseStatusEnum::Active->value;
             })(),
