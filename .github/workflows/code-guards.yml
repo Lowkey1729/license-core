@@ -77,6 +77,11 @@ jobs:
           DB_PORT: 3306
           DB_USERNAME: root
           DB_PASSWORD: ''
+          LICENSE_AES_SECRET: "license_aes_secret"
+          LICENSE_AES_IV: "cf5879a288df134f"
+          BRAND_AES_SECRET: "brand_aes_secret"
+          BRAND_AES_IV: "cf4279a288df134f"
+
         run: ./vendor/bin/pest --parallel
 
       - name: Code style fixes
