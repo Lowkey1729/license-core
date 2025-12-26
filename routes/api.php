@@ -20,6 +20,6 @@ Route::prefix('v1')->group(function () {
         Route::post('deactivate', [ProductLicenseController::class, 'deactivate'])
             ->name('product.licenses.deactivate');
         Route::get('check', [ProductLicenseController::class, 'check'])
-            ->name('product.licenses.deactivate');
+            ->name('product.licenses.check');
     });
 });
