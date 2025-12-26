@@ -26,7 +26,7 @@ class ConfigureApp extends Command
     protected $description = 'Set up the command for use';
 
     /**
-     * @var array<string, mixed>
+     * @var array<int, array<string, mixed>>
      */
     protected array $brands = [];
 
@@ -49,8 +49,6 @@ class ConfigureApp extends Command
         $this->populateBrands();
         $this->populateProducts();
         $this->generateAPIKeys();
-
-        unset($this->brands, $this->products);
 
         return 0;
     }
