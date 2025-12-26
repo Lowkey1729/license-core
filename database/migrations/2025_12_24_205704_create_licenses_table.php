@@ -14,8 +14,8 @@ return new class extends Migration
     {
         Schema::create('licenses', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('license_key_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('license_key_id');
+            $table->foreignUuid('product_id');
             $table->string('status', 25)->default(LicenseStatusEnum::Active->value);
             $table->integer('max_seats')->default(1);
             $table->timestamp('expires_at')->nullable();
