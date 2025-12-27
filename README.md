@@ -33,7 +33,7 @@ I chose a **Shared Database, Shared Schema** approach for multi-tenancy.
 * Implemented rate limiting to prevent the abuse of activate/deactivate endpoint for product license.
 
 ### NoSQL (MongoDB)
-* Audit logging is write-heavy. Offloading these high-volume inserts to a dedicated NoSQL store prevents locking or bloating the primary transactional database (MySQL).
+* Audit logging and Request Tracing is write-heavy. Offloading these high-volume inserts to a dedicated NoSQL store prevents locking or bloating the primary transactional database (MySQL).
 
 ## 3. Trade-offs and Decisions
 
@@ -105,6 +105,9 @@ To move this from a test case to a high-scale production system:
     ```
 
 ## 8. API Testing Examples
+
+### API Doc
+https://documenter.getpostman.com/view/14195862/2sBXVbFtCz
 
 Below are comprehensive API test examples for each user story:
 
