@@ -38,7 +38,7 @@ class RequestTrace
             'method' => $request->method(),
             'ip_address' => $request->ip(),
             'status_code' => $response->status(),
-            'latency_ms' => microtime(true) - LARAVEL_START,
+            'latency_ms' => microtime(true) - \LARAVEL_START,
             'request_body' => secureData($request->all()),
             'response_body' => secureData((array) $response->getData()),
         ]);
