@@ -2,6 +2,7 @@
 
 use App\DTOs\Responses\FailureResponse;
 use App\Http\Middleware\ForceJsonResponse;
+use App\Http\Middleware\RequestTrace;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(RequestTrace::class);
         $middleware->append(ForceJsonResponse::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

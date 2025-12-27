@@ -48,3 +48,20 @@ function formatKey(string $raw, int $length = 4): string
 {
     return implode('-', str_split($raw, $length));
 }
+
+/**
+ * @param  array<int|string, mixed>  $data
+ * @return array<int|string, mixed>
+ */
+function secureData(array $data): array
+{
+    $protectedKeys = ['refresh_token', 'token', 'client_id', 'client_secret'];
+
+    foreach ($protectedKeys as $key) {
+        if (isset($data[$key])) {
+            $data[$key] = Str::mask($data[$key], '***', 7, 30);
+        }
+    }
+
+    return $data;
+}
