@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('status', 25)->default(LicenseStatusEnum::Active->value);
             $table->integer('max_seats')->default(1);
             $table->timestamp('expires_at')->nullable();
+
+            $table->unique(['license_key_id', 'product_id']);
+
             $table->timestamps();
         });
     }

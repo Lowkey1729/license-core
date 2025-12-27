@@ -222,6 +222,7 @@ class ConfigureApp extends Command
             BrandApiKey::query()->create([
                 'brand_id' => $brand['id'],
                 'api_key' => $apiKey,
+                'expires_at' => null,
             ]);
 
             $apiKeys[] = [
