@@ -27,17 +27,17 @@ Route::prefix('v1')->group(function () {
     });
 });
 
-Route::get("health", function () {
+Route::get('health', function () {
 
     try {
-        DB::connection("mysql")->getPdo();
+        DB::connection('mysql')->getPdo();
         $mysqlDBStatus = 'ok';
     } catch (\Exception $e) {
         $mysqlDBStatus = 'failed';
     }
 
     try {
-        DB::connection("mysql")->getPdo();
+        DB::connection('mysql')->getPdo();
         $mongoDBStatus = 'ok';
     } catch (\Exception $e) {
         $mongoDBStatus = 'failed';
@@ -59,6 +59,6 @@ Route::get("health", function () {
             'mongoDB' => $mongoDBStatus,
             'redis' => $redisStatus,
         ],
-        'timestamp' => now()->toIso8601String()
+        'timestamp' => now()->toIso8601String(),
     ], $status);
 });
