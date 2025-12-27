@@ -96,10 +96,7 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: ''
 
-          MONGODB_DATABASE: license_logs_test
-          MONGODB_USER: root
-          MONGODB_PASSWORD: secret
-          MONGODB_URI: "mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@mongo:27017/${MONGODB_DATABASE}?authSource=admin&directConnection=true"
+          MONGODB_URI: "mongodb://root:secret@localhost:27017/license_logs_test?authSource=admin&directConnection=true"
 
           LICENSE_AES_SECRET: "license_aes_secret"
           LICENSE_AES_IV: "2f5879a288df134h"
