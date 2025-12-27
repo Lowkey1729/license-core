@@ -16,8 +16,10 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('product/licenses')->group(function () {
         Route::post('activate', [ProductLicenseController::class, 'activate'])
+            ->middleware('throttle:2,1')
             ->name('product.licenses.activate');
         Route::post('deactivate', [ProductLicenseController::class, 'deactivate'])
+            ->middleware('throttle:2,1')
             ->name('product.licenses.deactivate');
         Route::get('check', [ProductLicenseController::class, 'check'])
             ->name('product.licenses.check');
