@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('brand_api_keys', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->text('api_key')->index()->unique();
+            $table->string('api_key', 128)->unique();
             $table->foreignUuid('brand_id');
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();

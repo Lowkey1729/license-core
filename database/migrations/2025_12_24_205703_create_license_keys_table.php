@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('license_keys', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('brand_id');
-            $table->text('key')->unique();
-            $table->string('customer_email');
+            $table->string('key', 128)->unique();
+            $table->string('customer_email', 100);
 
             $table->index(['brand_id', 'customer_email']);
 
