@@ -80,6 +80,7 @@ To move this from a test case to a high-scale production system:
     cp .env.example .env
     cp .env.example.testing .env.testing
     php artisan key:generate
+    php artisan key:generate --env=testing
     ```
 
 2. **Install Dependencies**
