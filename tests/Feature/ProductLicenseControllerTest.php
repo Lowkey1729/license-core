@@ -1,17 +1,13 @@
 <?php
 
-use App\Enums\ActorTypeEnum;
 use App\Enums\EventEnum;
 use App\Enums\LicenseStatusEnum;
-use App\Helpers\LicenseKeyAESEncryption;
 use App\Models\Activation;
 use App\Models\Brand;
 use App\Models\License;
 use App\Models\LicenseKey;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
-use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
 
@@ -32,7 +28,7 @@ beforeEach(function () {
     $this->licenseKey = LicenseKey::create([
         'brand_id' => $this->brand->id,
         'key' => $this->rawKey,
-        'customer_email' => $this->customerEmail = "customer@gmail.com"
+        'customer_email' => $this->customerEmail = 'customer@gmail.com',
     ]);
 });
 
@@ -52,10 +48,10 @@ describe('License Activation', function () {
             'license_key' => $this->rawKey,
             'product_slug' => $this->product_slug,
             'fingerprint' => $fingerprint = 'device-hwid-001',
-            'platform_info' => $platformInfo = 'Windows 11'
+            'platform_info' => $platformInfo = 'Windows 11',
         ];
 
-        $response = $this->postJson(route("product.licenses.activate"), $payload);
+        $response = $this->postJson(route('product.licenses.activate'), $payload);
 
         $response->assertStatus(200);
 
@@ -64,17 +60,17 @@ describe('License Activation', function () {
             'platform_info' => $platformInfo,
         ]);
 
-        $this->assertDatabaseHas('audit_logs', ['event' => EventEnum::Created->value], "mongodb");
+        $this->assertDatabaseHas('audit_logs', ['event' => EventEnum::Created->value], 'mongodb');
     });
 
     test('it fails with 403 if the license is suspended', function () {
         License::query()->create([
             'license_key_id' => $this->licenseKey->id,
             'product_id' => $this->product->id,
-            'status' => LicenseStatusEnum::Suspended->value
+            'status' => LicenseStatusEnum::Suspended->value,
         ]);
 
-        $response = $this->postJson(route("product.licenses.activate"), [
+        $response = $this->postJson(route('product.licenses.activate'), [
             'license_key' => $this->rawKey,
             'product_slug' => $this->product_slug,
             'fingerprint' => 'device-hwid-001',
@@ -89,7 +85,7 @@ describe('License Activation', function () {
         $license = License::query()->create([
             'license_key_id' => $this->licenseKey->id,
             'product_id' => $this->product->id,
-            'status' => LicenseStatusEnum::Active->value
+            'status' => LicenseStatusEnum::Active->value,
         ]);
 
         Activation::query()->create([
@@ -97,10 +93,10 @@ describe('License Activation', function () {
             'fingerprint' => $fingerprint = 'duplicate-hwid',
         ]);
 
-        $response = $this->postJson(route("product.licenses.activate"), [
+        $response = $this->postJson(route('product.licenses.activate'), [
             'license_key' => $this->rawKey,
             'product_slug' => $this->product_slug,
-            'fingerprint' => $fingerprint
+            'fingerprint' => $fingerprint,
         ]);
 
         $response->assertStatus(403)
@@ -119,16 +115,16 @@ describe('License Activation', function () {
             [
                 'license_id' => $license->id,
                 'fingerprint' => 'pixel1',
-                'id' => newUniqueId()
+                'id' => newUniqueId(),
             ],
             [
                 'license_id' => $license->id,
                 'fingerprint' => 'pixel2',
-                'id' => newUniqueId()
-            ]
+                'id' => newUniqueId(),
+            ],
         ]);
 
-        $response = $this->postJson(route("product.licenses.activate"), [
+        $response = $this->postJson(route('product.licenses.activate'), [
             'license_key' => $this->rawKey,
             'product_slug' => $this->product_slug,
             'fingerprint' => 'pixel3',
@@ -145,7 +141,7 @@ describe('License Activation', function () {
             'status' => LicenseStatusEnum::Active->value,
         ]);
 
-        $response = $this->postJson(route("product.licenses.activate"), [
+        $response = $this->postJson(route('product.licenses.activate'), [
             'license_key' => $this->rawKey,
             'product_slug' => 'other-tool', // Mismatch
             'fingerprint' => 'hwid-1',
@@ -170,7 +166,7 @@ describe('License Deactivation', function () {
             'fingerprint' => $fingerprint = 'device-to-remove',
         ]);
 
-        $response = $this->postJson(route("product.licenses.deactivate"), [
+        $response = $this->postJson(route('product.licenses.deactivate'), [
             'license_key' => $this->rawKey,
             'product_slug' => $this->product_slug,
             'fingerprint' => $fingerprint,
@@ -188,10 +184,10 @@ describe('License Deactivation', function () {
             'status' => LicenseStatusEnum::Active->value,
         ]);
 
-        $response = $this->postJson(route("product.licenses.deactivate"), [
+        $response = $this->postJson(route('product.licenses.deactivate'), [
             'license_key' => $this->rawKey,
             'product_slug' => $this->product_slug,
-            'fingerprint' => 'ghost-device'
+            'fingerprint' => 'ghost-device',
         ]);
 
         $response->assertStatus(404)
@@ -213,24 +209,24 @@ describe('Check License Status', function () {
             [
                 'license_id' => $license->id,
                 'fingerprint' => 'pixel1',
-                'id' => newUniqueId()
+                'id' => newUniqueId(),
             ],
             [
                 'license_id' => $license->id,
                 'fingerprint' => 'pixel2',
-                'id' => newUniqueId()
-            ]
+                'id' => newUniqueId(),
+            ],
         ]);
 
         $response = $this->getJson(
-            uri: route("product.licenses.check", ['license_key' => $this->rawKey])
+            uri: route('product.licenses.check', ['license_key' => $this->rawKey])
         );
 
         $response->assertStatus(200)
             ->assertJson([
-                "status" => "success",
-                "message" => "License checked successfully.",
-                "data" => [
+                'status' => 'success',
+                'message' => 'License checked successfully.',
+                'data' => [
                     'customer' => $this->customerEmail,
                     'activations' => [
                         [
@@ -242,9 +238,9 @@ describe('Check License Status', function () {
                             'expires_at' => null,
                             'is_valid' => true,
                             'slug' => $this->product_slug,
-                        ]
-                    ]
-                ]
+                        ],
+                    ],
+                ],
             ]);
     });
 });

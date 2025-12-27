@@ -17,6 +17,7 @@ class BrandApiKey extends Model
     protected $fillable = [
         'brand_id',
         'api_key',
+        'expires_at',
     ];
 
     /**

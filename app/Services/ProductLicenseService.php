@@ -8,11 +8,12 @@ use App\Exceptions\LicenseException;
 use App\Helpers\LicenseKeyAESEncryption;
 use App\Models\Activation;
 use App\Models\LicenseKey;
+use Cache;
 
 readonly class ProductLicenseService
 {
     public function __construct(
-        private LicenseKeyAESEncryption $licenseKeyAES
+        private readonly LicenseKeyAESEncryption $licenseKeyAES
     ) {}
 
     /**
@@ -51,6 +52,9 @@ readonly class ProductLicenseService
             'platform_info' => $data['platform_info'] ?? null,
         ]);
 
+        $cacheKey = $this->getCacheKey($data);
+        Cache::forget($cacheKey);
+
         auditLog(
             event: EventEnum::Created,
             action: "New product activation: {$activation->id} created}",
@@ -83,6 +87,9 @@ readonly class ProductLicenseService
 
         $activation->delete();
 
+        $cacheKey = $this->getCacheKey($data);
+        Cache::forget($cacheKey);
+
         auditLog(
             event: EventEnum::Deleted,
             action: "Activation: {$activation->id} deleted}",
@@ -101,29 +108,33 @@ readonly class ProductLicenseService
      */
     public function checkStatus(array $data): array
     {
-        $licenseKey = $this->getLicenseKey($data);
+        $cacheKey = $this->getCacheKey($data);
 
-        $licenseKey->load(['licenses.product', 'licenses' => function ($query) {
-            $query->withCount('activations');
-        }]);
+        return Cache::remember($cacheKey, 1200, function () use ($data) {
+            $licenseKey = $this->getLicenseKey($data);
 
-        return [
-            'customer' => $licenseKey->customer_email,
-            'activations' => $licenseKey->licenses->map(function ($license) {
-                $seatsUsed = $license->activations_count;
+            $licenseKey->load(['licenses.product', 'licenses' => function ($query) {
+                $query->withCount('activations');
+            }]);
 
-                return [
-                    'product' => $license->product->name,
-                    'slug' => $license->product->slug,
-                    'is_valid' => $license->isValid(),
-                    'status' => $license->status,
-                    'expires_at' => $license->expires_at,
-                    'max_seats' => $license->max_seats,
-                    'seats_used' => $seatsUsed,
-                    'seats_left' => $license->max_seats - $seatsUsed,
-                ];
-            }),
-        ];
+            return [
+                'customer' => $licenseKey->customer_email,
+                'activations' => $licenseKey->licenses->map(function ($license) {
+                    $seatsUsed = $license->activations_count;
+
+                    return [
+                        'product' => $license->product->name,
+                        'slug' => $license->product->slug,
+                        'is_valid' => $license->isValid(),
+                        'status' => $license->status,
+                        'expires_at' => $license->expires_at,
+                        'max_seats' => $license->max_seats,
+                        'seats_used' => $seatsUsed,
+                        'seats_left' => $license->max_seats - $seatsUsed,
+                    ];
+                })->toArray(),
+            ];
+        });
     }
 
     /**
@@ -152,5 +163,17 @@ readonly class ProductLicenseService
         }
 
         return $licenseKey;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function getCacheKey(array $data): string
+    {
+        return sprintf(
+            '%s:%s',
+            'license_status',
+            hash('sha256', $data['license_key']),
+        );
     }
 }

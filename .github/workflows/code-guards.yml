@@ -96,16 +96,15 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: ''
 
-
           MONGODB_HOST: 127.0.0.1
           MONGODB_PORT: 27017
           MONGODB_DATABASE: license_core_test_mongo
 
-          # App Secrets
           LICENSE_AES_SECRET: "license_aes_secret"
-          LICENSE_AES_IV: "cf5879a288df134f"
+          LICENSE_AES_IV: "2f5879a288df134h"
+
           BRAND_AES_SECRET: "brand_aes_secret"
-          BRAND_AES_IV: "cf4279a288df134f"
+          BRAND_AES_IV: "1f4279a288df134f"
 
         run: ./vendor/bin/pest --parallel
 

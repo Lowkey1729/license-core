@@ -1,334 +1,105 @@
-# Centralized License Service - Complete Solution
-
-## Table of Contents
-1. [Problem & Requirements](#problem--requirements)
-2. [Architecture & Design](#architecture--design)
-3. [Data Model](#data-model)
-4. [API Endpoints](#api-endpoints)
-5. [Implementation Guide](#implementation-guide)
-6. [Setup Instructions](#setup-instructions)
-7. [Testing](#testing)
-8. [Trade-offs & Decisions](#trade-offs--decisions)
-
----
-
-## Problem & Requirements
-
-### Overview
-group.one needs a centralized License Service that acts as a single source of truth for licenses across multiple brands (WP Rocket, Imagify, RankMath, etc.). The system must:
-
-- Support multi-tenancy (multiple brands)
-- Manage license lifecycle (creation, renewal, suspension, cancellation)
-- Handle license activations with seat management
-- Provide APIs for both brand systems and end-user products
-- Scale across the ecosystem
-
-### User Stories Coverage
-
-**Implemented (Core):**
-- ✅ US1: Brand can provision a license
-- ✅ US3: End-user product can activate a license
-- ✅ US4: User can check license status
-- ✅ US6: Brands can list licenses by customer email
-
-**Designed (Additional):**
-- 📋 US2: Brand can change license lifecycle (architecture provided)
-- 📋 US5: End-user product can deactivate a seat (architecture provided)
-
----
-
-## Architecture & Design
-
-### System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Brand Systems Layer                       │
-│  (rankmath.com, wp-rocket.me, imagify.io, etc.)            │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         │ Brand API (Authenticated)
-                         │
-┌────────────────────────▼────────────────────────────────────┐
-│              License Service (Laravel API)                   │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   Brand      │  │   License    │  │  Activation  │     │
-│  │   Service    │  │   Service    │  │   Service    │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │            Data Layer (MySQL/PostgreSQL)              │  │
-│  │  brands | products | license_keys | licenses |        │  │
-│  │  activations | audit_logs                             │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │     Observability: Logs, Metrics, Health Checks       │  │
-│  └──────────────────────────────────────────────────────┘  │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         │ Product API (License Key Auth)
-                         │
-┌────────────────────────▼────────────────────────────────────┐
-│              End-User Products Layer                         │
-│    (WordPress Plugins, Desktop Apps, CLIs)                  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Multi-Tenancy Design
-
-**Brand Isolation:**
-- Each brand has a unique identifier (slug: `rankmath`, `wprocket`, etc.)
-- Brand API keys for authentication
-- Products belong to brands
-- License keys scoped to brands
-
-**Cross-Brand Queries:**
-- Email-based lookup spans all brands (US6)
-- Proper authorization enforced at API level
-
-### Key Design Decisions
-
-1. **License Key vs License Separation**
-    - License Key: Container that groups multiple licenses
-    - License: Specific product entitlement with expiration and status
-    - Allows multiple products under one key (e.g., RankMath + Content AI)
-
-2. **Activation Model**
-    - Activations tied to licenses, not license keys
-    - fingerprint (URL, machine ID) uniqueness enforced
-    - Seat counting at license level
-
-3. **API Security**
-    - Brand API: API key authentication via middleware
-    - Product API: License key validation
-    - Separate routes for different audiences
-
----
-
-## Data Model
-
-### Entity Relationship Diagram
-
-```
-brands
-├── id
-├── name (RankMath, WP Rocket)
-├── slug (rankmath, wprocket)
-├── api_key (for authentication)
-└── timestamps
-
-products
-├── id
-├── brand_id (FK → brands)
-├── name (RankMath Pro, Content AI)
-├── slug (rankmath-pro, content-ai)
-├── max_seats (nullable, default seat limit)
-└── timestamps
-
-license_keys
-├── id
-├── key (unique, indexed)
-├── brand_id (FK → brands)
-├── customer_email (indexed)
-└── timestamps
-
-licenses
-├── id
-├── license_key_id (FK → license_keys)
-├── product_id (FK → products)
-├── status (valid, suspended, cancelled)
-├── expires_at (nullable for lifetime)
-├── max_seats (override product default)
-└── timestamps
-
-activations
-├── id
-├── license_id (FK → licenses)
-├── instance_identifier (site URL, machine ID)
-├── activated_at
-├── last_checked_at
-└── unique(license_id, instance_identifier)
-
-audit_logs
-├── id
-├── entity_type (license, activation)
-├── entity_id
-├── action (created, renewed, suspended, etc.)
-├── actor (brand_slug or system)
-├── metadata (JSON)
-└── created_at
-```
-
-
----
-
-## API Endpoints
-
-### Brand API (Internal - Requires API Key)
-
-**Authentication:** `X-BRAND-API-KEY` header
-
-#### 1. Provision License (US1)
-
-```http
-POST /api/v1/brand/licenses
-X-BRAND-API-KEY: {brand_api_key}
-Content-Type: application/json
-
-{
-  "customer_email": "user@example.com",
-  "product_slug": "rankmath-pro",
-  "expires_at": "2025-12-31T23:59:59Z",  // optional, null = lifetime
-  "max_seats": 3  // optional, overrides product default
-}
-
-Response 201
-```
-
-#### 2. Update License Lifecycle (US2)
-
-```http
-PATCH /api/v1/brand/licenses/{id}
-X-BRAND-API-KEY: {brand_api_key}
-Content-Type: application/json
-
-// Renew
-{
-  "action": "renew",
-  "expires_at": "2026-12-31T23:59:59Z"
-}
-
-// Suspend
-{
-  "action": "suspend"
-}
-
-// Resume
-{
-  "action": "resume"
-}
-
-// Cancel
-{
-  "action": "cancel"
-}
-
-Response 200
-```
-
-#### 3. List Licenses by Email (US6)
-
-```http
-GET /api/v1/brand/licenses
-X-BRAND-API-KEY: {brand_api_key}
-Content-Type: application/json
-
-{
-  "email": "test@gmail.com"
-}
-
-Response 200
-```
-
-### Product API
-
-#### 4. Activate License (US3)
-
-```http
-POST /api/v1/product/licenses/activate
-Content-Type: application/json
-
-{
-  "license_key": "RNKM-XXXX-XXXX-XXXX",
-  "product_slug": "rankmath-pro",
-  "fingerprint": "https://mysite.com",
-  "platform_info": ""
-}
-
-Response 200
-
-Response 409 (Seat limit exceeded)
-```
-
-#### 5. Check License Status (US4)
-
-```http
-GET /api/v1/product/check/{licenseKey}
-Content-Type: application/json
-
-Response 200
-```
-
-#### 6. Deactivate Seat (US5)
-
-```http
-DELETE /api/v1/product/licenses/activate
-Content-Type: application/json
-
-{
-  "license_key": "RNKM-XXXX-XXXX-XXXX",
-  "product_slug": "rankmath-pro",
-  "fingerprint": "https://mysite.com"
-}
-
-Response 200
-```
-
----
-
-## Implementation Guide
-
-### Project Structure
-
-```
-license-core/
-├── app/
-│   ├── Concerns/
-│   │   ├── ExceptionResponseTrait.php
-│   │   ├── HasUUIDs.php
-|   |
-│   ├── Models/
-│   │   ├── Activation.php
-│   │   ├── Product.php
-│   │   ├── LicenseKey.php
-│   │   ├── License.php
-│   │   ├── Activation.php
-│   │   ├── BrandApiKey.php
-│   │   └── AuditLog.php
-│   ├── Models/
-│   │   ├── Activation.php
-│   │   ├── Product.php
-│   │   ├── LicenseKey.php
-│   │   ├── License.php
-│   │   ├── Activation.php
-│   │   ├── BrandApiKey.php
-│   │   └── AuditLog.php
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── BrandLicenseController.php
-│   │   │   └── ProductLicenseController.php
-│   │   ├── Middleware/
-│   │   │   └── BrandApiKeyAuth.php
-│   │   └── Requests/
-│   │       ├── ProvisionLicenseRequest.php
-│   │       └── ActivateLicenseRequest.php
-│   ├── Services/
-│   │   ├── LicenseService.php
-│   │   ├── ActivationService.php
-│   │   └── AuditService.php
-│   ├── Exceptions/
-│   │   ├── SeatLimitExceededException.php
-│   │   ├── LicenseNotFoundException.php
-│   │   └── InvalidLicenseStatusException.php
-├── database/
-│   ├── migrations/
-│   └── seeders/
-├── routes/
-│   └── api.php
-├── tests/
-│   ├── Feature/
-│   └── Unit/
-└── README.md
-```
+# Centralized License Service - Explanation & Documentation
+
+## 1. Problem and Requirements
+**Context:** group.one operates a multi-brand ecosystem (WP Rocket, RankMath, etc.) where license management is currently fragmented.
+**Problem:** There is no single source of truth for what products a person can access. Brands need a way to provision licenses centrally, and products need a standardized way to validate them.
+[cite_start]**Goal:** Build a multi-tenant License Service that acts as the authority for license lifecycles, exposing APIs for Brands (provisioning) and Products (activation/checking).
+
+## 2. Architecture and Design
+
+### Data Model & Multi-Tenancy
+I chose a **Shared Database, Shared Schema** approach for multi-tenancy.
+* **Tenant Identification:** Brands are the tenants. All core entities (`products`, `license_keys`, and `brand_api_keys`) are scoped by `brand_id`.
+* **Isolation:** Application-level scoping is enforced via Middleware and Service layers to ensure Brands can only manipulate their own data.
+* **Justification:** This allows for easier aggregation of data, specifically satisfying **US6** without complex cross-database queries.
+
+### Security & Cryptography
+* **Brand Authentication:** Uses `X-BRAND-API-KEY`. Keys are stored encrypted using `AES-256-CBC` (via `App\Helpers\BrandApiKeyAESEncryption`).
+* **License Keys:** License keys are opaque tokens generated with high entropy (`random_bytes`).
+    * **Storage:** They are stored **encrypted** in the database.
+    * **Transmission:** They are only returned in plaintext once (upon creation) and sent to the customer's email (upon creation).
+    * **Validation:** Incoming keys are encrypted and matched against the database.
+
+### Integration Points
+* **Brand API:** Used by backend systems (e.g., RankMath, WP Rocket) to create/update licenses.
+* **Product API:** Used by the software itself (e.g., WP Plugins) to activate seats and check validity.
+
+### NoSQL (MongoDB)
+* Audit logging is write-heavy. Offloading these high-volume inserts to a dedicated NoSQL store prevents locking or bloating the primary transactional database (MySQL).
+
+## 3. Trade-offs and Decisions
+
+### Encryption vs. Hashing for Keys
+* **Decision:** I chose **Symmetric Encryption** (AES) over Hashing (bcrypt/argon2) for API and License Keys.
+* **Trade-off:** Hashing is generally more secure for authentication secrets. However, in this domain, Brands may need to retrieve or audit keys. Encryption offers a balance between security (at rest) and recoverability.
+
+
+## 4. Alternatives Considered
+
+### Database-per-Tenant
+* **Alternative:** Creating a separate database for each Brand.
+* **Why Rejected:** While offering superior isolation, it complicates **US6** (Listing licenses across all brands for a specific email). A shared schema with strict `brand_id` indexing was deemed more efficient for the "ecosystem" view required by group.one.
+
+## 5. Scaling Plan
+
+To move this from a test case to a high-scale production system:
+
+1.  **Read Replicas:** The "Check License" endpoint (US4) will likely have a 100:1 read/write ratio compared to Provisioning. Directing these reads to DB replicas will prevent locking.
+2.  **Caching:** Implement Redis caching for the `/check` endpoint. Valid licenses can be cached for short windows (e.g., 20-30 minutes) to reduce DB load.
+3.  **Horizontal Scaling:** The API is stateless (PHP/Laravel). We can run many instances behind a Load Balancer.
+
+## 6. User Story Satisfaction
+
+| Story | Status | Implementation Details                                                                                   |
+| :--- | :--- |:---------------------------------------------------------------------------------------------------------|
+| **US1: Brand can provision** | **Implemented** | `POST /api/v1/brand/licenses`. Accepts customer email + product list. Generates encrypted key.           |
+| **US2: Brand lifecycle** | **Designed** | API endpoint defined (`PATCH /api/product/licenses/{id}`) to handle `suspend` / `renew`. (Logic mocked). |
+| **US3: Product activation** | **Implemented** | `POST /api/v1/product/licenses/activate`. Enforces `max_seats` and locks `fingerprint` to license.       |
+| **US4: Check status** | **Implemented** | `GET /api/v1/product/licenses/check`. Returns validity boolean and seat usage counts.                    |
+| **US5: Deactivate seat** | **Designed** | defined in API spec.                                                                                     |
+| **US6: List by Email** | **Implemented** | `GET /api/v1/brand/licenses?email=...`. Queries across brands (Admin/Brand context).                     |
+
+
+## 7. How to Run Locally
+
+### Prerequisites
+* Docker & Docker Compose
+* *Or:* PHP 8.2+, Composer, MySQL
+
+### Steps
+1.  **Clone and Setup**
+    ```bash
+    git clone https://github.com/Lowkey1729/license-core.git
+    cd license-core
+    cp .env.example .env
+    ```
+2. **Install Dependencies**
+    ```bash
+    composer install --ignore-platform-reqs
+    ```
+   
+3. **Start Environment (Docker)**
+    ```bash
+    docker compose up --build
+    ```
+
+4. **Setup DB**
+    ```bash
+    docker compose exec app php artisan migrate
+    docker compose exec app php artisan configure-app
+    ```
+    *The configure-app command creates default brands (`rankmath`, `wprocket`), products, and X-BRAND-API-KEYs.*
+   ![Sample Generated License Keys](generated-license-keys-sample.png)
+
+5. **Test the API**
+    * **Provision a License:**
+        ```bash
+        curl -X POST http://localhost/api/v1/brand/licenses \
+        -H "X-BRAND-API-KEY: test-brand-key" \
+        -d '{"email":"customer@example.com", "products": [{"slug": "rank-math-pro"}]}'
+        ```
+
+## 8. Known Limitations & Next Steps
+1.  **Concurrency:** Currently, a race condition could theoretically allow over-activation if two requests hit the server at the exact same microsecond. *Next Step:* Implement Atomic Locks (Redis) on the `activate` endpoint.
+2.  **Audit Log Growth:** The `audit_logs` table will grow rapidly. *Next Step:* Implement an async worker to offload logs to Elasticsearch.
+3.  **Webhooks:** Brands currently have to pull data. *Next Step:* Implement webhooks to notify Brands when a user activates a license.
