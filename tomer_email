@@ -1,0 +1,24 @@
+[90m= [39m[34;4mIlluminate\Database\Eloquent\Collection[39;24m {#5817
+    [34mall[39m: [
+      [34;4mApp\Models\RequestTrace[39;24m {#5816
+        [34mtrace_id[39m: "[32m7ae3532c-7c7a-46ac-856f-5e4fe8ee87fd[39m",
+        [34murl[39m: "[32mhttp://localhost:29001/api/v1/brand/licenses[39m",
+        [34mmethod[39m: "[32mPOST[39m",
+        [34mip_address[39m: "[32m143.110.171.18[39m",
+        [34mstatus_code[39m: [35m403[39m,
+        [34mlatency_ms[39m: [33m0.15299701690674[39m,
+        [34mrequest_body[39m: "[32m{"customer_email":"fadheelah@gmail.com","products":[{"product_slug":"wp_rocket_core_plugin","expires_at":"2026-02-11","max_seats":2},{"product_slug":"rocketcdn","expires_at":"2026-02-11","max_seats":2},{"product_slug":"advanced_caching_features","expires_at":"2026-02-13","max_seats":1}]}[39m",
+        [34mresponse_body[39m: "[32m{"status":"failed","message":"Authentication error","traceId":"7ae3532c-7c7a-46ac-856f-5e4fe8ee87fd"}[39m",
+        [34mupdated_at[39m: [34;4mIlluminate\Support\Carbon @1766843777[39;24m {#5827
+          [34mdate[39m: [36m2025-12-27 13:56:17.569 UTC (+00:00)[39m,
+        },
+        [34mcreated_at[39m: [34;4mIlluminate\Support\Carbon @1766843777[39;24m {#5408
+          [34mdate[39m: [36m2025-12-27 13:56:17.569 UTC (+00:00)[39m,
+        },
+        [34mid[39m: [34;4mMongoDB\BSON\ObjectId[39;24m {#5830
+          +"[1moid[22m": "[32m694fe581191a3f7e050be116[39m",
+        },
+      },
+    ],
+  }
+

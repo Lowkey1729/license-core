@@ -55,7 +55,7 @@ function formatKey(string $raw, int $length = 4): string
  */
 function secureData(array $data): array
 {
-    $protectedKeys = ['refresh_token', 'token', 'client_id', 'client_secret'];
+    $protectedKeys = ['refresh_token', 'token', 'client_id', 'client_secret', 'customer_email', 'license_key'];
 
     foreach ($protectedKeys as $key) {
         if (isset($data[$key])) {
