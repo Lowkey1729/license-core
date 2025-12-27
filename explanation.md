@@ -89,12 +89,12 @@ To move this from a test case to a high-scale production system:
     docker compose exec app php artisan configure-app
     ```
    *The configure-app command creates default brands (`rankmath`, `wprocket`), products, and X-BRAND-API-KEYs.*
-   ![Sample Generated License Keys](https://github.com/user-attachments/assets/8326e65d-b715-454b-a426-81c0775e9cb6)
+   ![Sample Generated License Keys](https://github-production-user-asset-6210df.s3.amazonaws.com/53194190/530470019-fdbb1008-d040-497b-a145-cbef5d108207.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20251227%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251227T103723Z&X-Amz-Expires=300&X-Amz-Signature=5091e665275d5e083ce5a872e0c9fc93882cccaea84b37c6091cd836e5d3d5af&X-Amz-SignedHeaders=host)
 
 5. **Test the API**
     * **Provision a License:**
         ```bash
-        curl -X POST http://localhost/api/v1/brand/licenses \
+        curl -X POST http://localhost:29001/api/v1/brand/licenses \
         -H "X-BRAND-API-KEY: test-brand-key" \
         -d '{"email":"customer@example.com", "products": [{"slug": "rank-math-pro"}]}'
         ```
