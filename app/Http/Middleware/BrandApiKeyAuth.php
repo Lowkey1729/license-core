@@ -21,7 +21,6 @@ class BrandApiKeyAuth
         $key = $request->header('X-BRAND-API-KEY');
 
         if (is_null($key)) {
-            Log::warning('X-BRAND-API-KEY not set');
             throw new InvalidBrandKeyException('Authentication error', 403);
         }
 

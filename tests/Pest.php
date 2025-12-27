@@ -41,7 +41,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
-{
-    // ..
+
+if (! defined('LARAVEL_START')) {
+    define('LARAVEL_START', microtime(true));
 }
