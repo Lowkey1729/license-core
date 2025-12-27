@@ -2,7 +2,6 @@
 
 use App\Enums\LicenseActionEnum;
 use App\Enums\LicenseStatusEnum;
-use App\Helpers\BrandApiKeyAESEncryption;
 use App\Models\Brand;
 use App\Models\BrandApiKey;
 use App\Models\License;
@@ -27,7 +26,6 @@ beforeEach(function () {
         'api_key' => $this->apiKey,
     ]);
 
-
     $this->headers = ['X-BRAND-API-KEY' => $this->apiKey];
 
 });
@@ -49,12 +47,12 @@ describe('Provision Licenses', function () {
                 [
                     'product_slug' => 'pro_pack',
                     'max_seats' => 5,
-                    'expires_at' => now()->addYear()->format("Y-m-d")
-                ]
-            ]
+                    'expires_at' => now()->addYear()->format('Y-m-d'),
+                ],
+            ],
         ];
 
-        $response = $this->postJson(route("brand.licenses.store"), $payload, $this->headers);
+        $response = $this->postJson(route('brand.licenses.store'), $payload, $this->headers);
 
         $response->assertStatus(201);
 
@@ -67,33 +65,33 @@ describe('Provision Licenses', function () {
 
         $this->assertDatabaseHas('license_keys', [
             'customer_email' => $email,
-            'brand_id' => $this->brand->id
+            'brand_id' => $this->brand->id,
         ]);
 
         Notification::assertSentOnDemand(
             NewLicenseKeyNotification::class,
-            fn($n, $ch, $notifiable) => $notifiable->routes['mail'] === $email
+            fn ($n, $ch, $notifiable) => $notifiable->routes['mail'] === $email
         );
     });
 
     test('it fails with 400 if attempting to provision too many products', function () {
         $products = array_fill(0, 11, ['product_slug' => 'dummy-slug']);
 
-        $this->postJson(route("brand.licenses.store"), [
+        $this->postJson(route('brand.licenses.store'), [
             'customer_email' => 'customer1@gmail.com',
-            'products' => $products
+            'products' => $products,
         ], $this->headers)
             ->assertStatus(400)
             ->assertJson([
                 'status' => 'failed',
-                'message' => 'You are not allowed to provision licenses for more than 10 products at the same time'
+                'message' => 'You are not allowed to provision licenses for more than 10 products at the same time',
             ]);
     });
 
     test('it fails with 404 if a product slug does not exist', function () {
-        $this->postJson(route("brand.licenses.store"), [
+        $this->postJson(route('brand.licenses.store'), [
             'customer_email' => 'typo@test.com',
-            'products' => [['product_slug' => 'non-existent-product']]
+            'products' => [['product_slug' => 'non-existent-product']],
         ], $this->headers)
             ->assertStatus(404);
     });
@@ -104,13 +102,13 @@ describe('Update License Lifecycle', function () {
     $createLicense = function (Brand $brand, string $status = LicenseStatusEnum::Active->value) {
         $key = LicenseKey::create([
             'brand_id' => $brand->id,
-            'key' => 'key_' . uniqid(),
-            'customer_email' => 'customer@example.com'
+            'key' => 'key_'.uniqid(),
+            'customer_email' => 'customer@example.com',
         ]);
 
         $product = Product::create([
             'brand_id' => $brand->id,
-            'slug' => 'prod_' . uniqid(),
+            'slug' => 'prod_'.uniqid(),
             'name' => 'Product',
         ]);
 
@@ -127,7 +125,7 @@ describe('Update License Lifecycle', function () {
         $license = $createLicense($this->brand);
 
         $this->patchJson(
-            route("brand.licenses.update", ["id" => $license->id]),
+            route('brand.licenses.update', ['id' => $license->id]),
             ['action' => LicenseActionEnum::Suspend->value],
             $this->headers
         )->assertStatus(200);
@@ -139,7 +137,7 @@ describe('Update License Lifecycle', function () {
         $license = $createLicense($this->brand);
 
         $this->patchJson(
-            route("brand.licenses.update", ["id" => $license->id]),
+            route('brand.licenses.update', ['id' => $license->id]),
             ['action' => 'invalid_action_verb'],
             $this->headers
         )->assertStatus(422);
@@ -151,7 +149,7 @@ describe('Update License Lifecycle', function () {
         $otherLicense = $createLicense($otherBrand);
 
         $this->patchJson(
-            route("brand.licenses.update", ["id" => $otherLicense->id]),
+            route('brand.licenses.update', ['id' => $otherLicense->id]),
             ['action' => LicenseActionEnum::Suspend->value],
             $this->headers
         )->assertStatus(404);
@@ -162,10 +160,10 @@ describe('Update License Lifecycle', function () {
         $newDate = now()->addYears(2)->toDateTimeString();
 
         $this->patchJson(
-            route("brand.licenses.update", ["id" => $license->id]),
+            route('brand.licenses.update', ['id' => $license->id]),
             [
                 'action' => LicenseActionEnum::Renew->value,
-                'expires_at' => $newDate
+                'expires_at' => $newDate,
             ],
             $this->headers
         )->assertStatus(200);
@@ -182,7 +180,7 @@ describe('Fetch Licenses', function () {
         $key = LicenseKey::create([
             'brand_id' => $this->brand->id,
             'key' => 'test_key',
-            'customer_email' => "customer@gmail.com"
+            'customer_email' => 'customer@gmail.com',
         ]);
 
         $product = Product::create([
@@ -199,16 +197,16 @@ describe('Fetch Licenses', function () {
             'max_seats' => 5,
         ]);
 
-        $response = $this->getJson(route("brand.licenses.index"), $this->headers)
+        $response = $this->getJson(route('brand.licenses.index'), $this->headers)
             ->assertStatus(200);
 
         $data = $response->json('data');
 
         expect($data)
-            ->toHaveKey("data")
-            ->toHaveKey("links")
-            ->toHaveKey("prev_page_url")
-            ->toHaveKey("next_page_url");
+            ->toHaveKey('data')
+            ->toHaveKey('links')
+            ->toHaveKey('prev_page_url')
+            ->toHaveKey('next_page_url');
     });
 
     test('it filters by email', function () {
@@ -216,13 +214,13 @@ describe('Fetch Licenses', function () {
         $targetKey = LicenseKey::create([
             'brand_id' => $this->brand->id,
             'key' => 'target_key',
-            'customer_email' => "target@gmail.com"
+            'customer_email' => 'target@gmail.com',
         ]);
 
         LicenseKey::create([
             'brand_id' => $this->brand->id,
             'key' => 'noise_key',
-            'customer_email' => "other@gmail.com"
+            'customer_email' => 'other@gmail.com',
         ]);
 
         $product = Product::create([
@@ -239,7 +237,7 @@ describe('Fetch Licenses', function () {
         ]);
 
         $response = $this->getJson(
-            route("brand.licenses.index", ["email" => $targetKey->customer_email]),
+            route('brand.licenses.index', ['email' => $targetKey->customer_email]),
             $this->headers
         );
 

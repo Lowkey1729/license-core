@@ -66,7 +66,7 @@ class License extends Model
      * @param  Builder<License>  $query
      * @return Builder<License>
      */
-    public function scopeForProduct(Builder $query, ?string $productSlug): Builder
+    public function scopeWhereProduct(Builder $query, ?string $productSlug): Builder
     {
         return $query->when(
             $productSlug,

@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('activations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('license_id');
-            $table->string('fingerprint');
-            $table->string('platform_info')->nullable();
+            $table->string('fingerprint', 100);
+            $table->string('platform_info', 100)->nullable();
             $table->timestamp('deleted_at')->nullable();
 
             $table->unique(['license_id', 'fingerprint', 'deleted_at']);
