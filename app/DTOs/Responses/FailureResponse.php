@@ -2,6 +2,7 @@
 
 namespace App\DTOs\Responses;
 
+use Context;
 use Illuminate\Http\JsonResponse;
 use Spatie\LaravelData\Data;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,6 +20,7 @@ class FailureResponse extends Data
             [
                 'status' => 'failed',
                 'message' => $this->message,
+                'traceId' => Context::get('traceId'),
             ],
             $this->httpStatusCode
         );
