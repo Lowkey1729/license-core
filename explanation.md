@@ -50,14 +50,14 @@ To move this from a test case to a high-scale production system:
 
 ## 6. User Story Satisfaction
 
-| Story | Status | Implementation Details                                                                                   |
-| :--- | :--- |:---------------------------------------------------------------------------------------------------------|
-| **US1: Brand can provision** | **Implemented** | `POST /api/v1/brand/licenses`. Accepts customer email + product list. Generates encrypted key.           |
-| **US2: Brand lifecycle** | **Designed** | API endpoint defined (`PATCH /api/product/licenses/{id}`) to handle `suspend` / `renew`. (Logic mocked). |
-| **US3: Product activation** | **Implemented** | `POST /api/v1/product/licenses/activate`. Enforces `max_seats` and locks `fingerprint` to license.       |
-| **US4: Check status** | **Implemented** | `GET /api/v1/product/licenses/check`. Returns validity boolean and seat usage counts.                    |
-| **US5: Deactivate seat** | **Designed** | defined in API spec.                                                                                     |
-| **US6: List by Email** | **Implemented** | `GET /api/v1/brand/licenses?email=...`. Queries across brands (Admin/Brand context).                     |
+| Story | Status          | Implementation Details                                                                             |
+| :--- |:----------------|:---------------------------------------------------------------------------------------------------|
+| **US1: Brand can provision** | **Implemented** | `POST /api/v1/brand/licenses`. Accepts customer email + product list. Generates encrypted key.     |
+| **US2: Brand lifecycle** | **Implemented**    | API endpoint defined (`PATCH /api/product/licenses/{id}`) to handle `suspend`, `renew`, e.t.c..    |
+| **US3: Product activation** | **Implemented** | `POST /api/v1/product/licenses/activate`. Enforces `max_seats` and locks `fingerprint` to license. |
+| **US4: Check status** | **Implemented** | `GET /api/v1/product/licenses/check`. Returns validity boolean and seat usage counts.              |
+| **US5: Deactivate seat** | **Implemented** | `POST /api/v1/product/licenses/deactivate`                                                         |
+| **US6: List by Email** | **Implemented** | `GET /api/v1/brand/licenses?email=...`.                                                            |
 
 
 ## 7. How to Run Locally
@@ -77,7 +77,7 @@ To move this from a test case to a high-scale production system:
     ```bash
     composer install --ignore-platform-reqs
     ```
-   
+
 3. **Start Environment (Docker)**
     ```bash
     docker compose up --build
@@ -88,7 +88,7 @@ To move this from a test case to a high-scale production system:
     docker compose exec app php artisan migrate
     docker compose exec app php artisan configure-app
     ```
-    *The configure-app command creates default brands (`rankmath`, `wprocket`), products, and X-BRAND-API-KEYs.*
+   *The configure-app command creates default brands (`rankmath`, `wprocket`), products, and X-BRAND-API-KEYs.*
    ![Sample Generated License Keys](https://github.com/user-attachments/assets/8326e65d-b715-454b-a426-81c0775e9cb6)
 
 5. **Test the API**
