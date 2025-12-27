@@ -79,6 +79,7 @@ To move this from a test case to a high-scale production system:
     cd license-core
     cp .env.example .env
     cp .env.example.testing .env.testing
+    php artisan key:generate
     ```
 
 2. **Install Dependencies**
@@ -102,6 +103,15 @@ To move this from a test case to a high-scale production system:
 5. **Run Tests**
     ```bash
     docker exec -it license_app php artisan test
+    ```
+
+6. **Run Static Analysis**
+    ```bash
+    docker compose exec app composer analyze
+    ```
+7. **Code Style Fixes**
+    ```bash
+    docker compose exec app composer pint
     ```
 
 ## 8. API Testing Examples
