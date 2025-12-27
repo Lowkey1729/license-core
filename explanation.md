@@ -271,12 +271,12 @@ curl -X POST http://localhost:29001/api/v1/product/licenses/deactivate \
 **Expected Response:**
 ```json
 {
-  "success": true,
-  "data": {
-    "deactivated": true,
-    "seats_used": 0,
-    "seats_available": 3
-  }
+    "success": true,
+    "data": {
+        "deactivated": true,
+        "seats_used": 0,
+        "seats_available": 3
+    }
 }
 ```
 
@@ -290,29 +290,29 @@ curl -X GET "http://localhost:29001/api/v1/brand/licenses?email=customer@example
 **Expected Response:**
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "license_key": "RM-XXXX-XXXX-XXXX-XXXX",
-      "email": "customer@example.com",
-      "brand": "rankmath",
-      "products": ["rank-math-pro"],
-      "status": "active",
-      "seats_used": 1,
-      "max_seats": 3,
-      "expires_at": "2025-12-31T23:59:59Z"
-    },
-    {
-      "license_key": "WP-YYYY-YYYY-YYYY-YYYY",
-      "email": "customer@example.com",
-      "brand": "wprocket",
-      "products": ["wp-rocket"],
-      "status": "active",
-      "seats_used": 2,
-      "max_seats": 5,
-      "expires_at": "2026-06-30T23:59:59Z"
-    }
-  ]
+    "success": true,
+    "data": [
+        {
+            "license_key": "RM-XXXX-XXXX-XXXX-XXXX",
+            "email": "customer@example.com",
+            "brand": "rankmath",
+            "products": ["rank-math-pro"],
+            "status": "active",
+            "seats_used": 1,
+            "max_seats": 3,
+            "expires_at": "2025-12-31T23:59:59Z"
+        },
+        {
+            "license_key": "WP-YYYY-YYYY-YYYY-YYYY",
+            "email": "customer@example.com",
+            "brand": "wprocket",
+            "products": ["wp-rocket"],
+            "status": "active",
+            "seats_used": 2,
+            "max_seats": 5,
+            "expires_at": "2026-06-30T23:59:59Z"
+        }
+    ]
 }
 ```
 
