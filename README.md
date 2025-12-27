@@ -89,7 +89,7 @@ To move this from a test case to a high-scale production system:
     docker compose exec app php artisan configure-app
     ```
    *The configure-app command creates default brands (`rankmath`, `wprocket`), products, and X-BRAND-API-KEYs.*
-   <img src="generated-license-keys-sample.png" width="700">
+   <img width="1125" height="265" alt="generated-license-keys-sample" src="https://github.com/user-attachments/assets/b9df725f-d412-4071-8a5f-d9d4080bb9f8" />
 
 5. **Test the API**
     * **Provision a License:**
