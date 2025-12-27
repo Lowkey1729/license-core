@@ -29,7 +29,7 @@ class RequestTrace
         return $response;
     }
 
-    public function terminate(Request $request, JsonResponse $response): void
+    public function terminate(Request $request, JsonResponse|\Illuminate\Http\Response $response): void
     {
 
         \App\Models\RequestTrace::query()->create([
@@ -40,7 +40,7 @@ class RequestTrace
             'status_code' => $response->status(),
             'latency_ms' => microtime(true) - \LARAVEL_START,
             'request_body' => secureData($request->all()),
-            'response_body' => secureData((array) $response->getData()),
+            'response_body' => secureData((array) json_decode($response->content())),
         ]);
     }
 }
