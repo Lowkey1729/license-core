@@ -89,18 +89,9 @@ To move this from a test case to a high-scale production system:
     docker compose exec app php artisan configure-app
     ```
    *The configure-app command creates default brands (`rankmath`, `wprocket`), products, and X-BRAND-API-KEYs.*
-   ![Sample Generated License Keys](generated-license-keys-sample.png)
+   ![Sample Generated License Keys](https://github.com/user-attachments/assets/8326e65d-b715-454b-a426-81c0775e9cb6)
 
-5. **Code Check**
-    ```bash
-    docker compose exec app composer analyze
-    docker compose exec app ./vendor/bin/pest
-    docker compose exec app composer pint
-    ```
-   *The configure-app command creates default brands (`rankmath`, `wprocket`), products, and X-BRAND-API-KEYs.*
-   ![Sample Generated License Keys](generated-license-keys-sample.png)
-
-6. **Test the API**
+5. **Test the API**
     * **Provision a License:**
         ```bash
         curl -X POST http://localhost/api/v1/brand/licenses \
