@@ -37,7 +37,7 @@ class BrandLicenseController extends Controller
         /** @var Brand $brand */
         $brand = $request->brand;
 
-        $response = $this->licenseService->provision($brand, $request->validated());
+        $response = $this->licenseService->provisio($brand, $request->validated());
 
         return new SuccessResponse(
             message: 'License(s) provisioned successfully',
