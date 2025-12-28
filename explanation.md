@@ -442,13 +442,11 @@ curl -X GET "http://localhost:29001/api/v1/brand/licenses?email=customer@example
 ### Rate Limiting & Abuse Protection
 - Activation and deactivation endpoints are rate-limited
   to prevent brute-force or abuse scenarios.
-- Failed attempts are observable via audit logs.
 
 ### Operational Readiness
 - The service is stateless and horizontally scalable.
 - MongoDB separation ensures high write throughput for logs.
-- Future readiness/liveness endpoints can be exposed
-  for container orchestration and monitoring systems.
+- Health endpoints are exposed for container orchestration and monitoring systems.
 
 
 ## 10. Known Limitations & Next Steps
