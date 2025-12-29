@@ -425,6 +425,9 @@ curl -X GET "http://localhost:29001/api/v1/brand/licenses?email=customer@example
 - Traces are persisted in MongoDB for correlation across logs and failures.
 - This enables debugging across Brand API and Product API calls.
 
+### Observerbility
+- Laravel nightwatch
+
 ### Audit Logging
 - All sensitive actions (provisioning, activation, deactivation, lifecycle changes)
   emit structured audit events.
