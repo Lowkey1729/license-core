@@ -23,7 +23,7 @@ beforeEach(function () {
 
     BrandApiKey::create([
         'brand_id' => $this->brand->id,
-        'api_key' => $this->apiKey,
+        'api_key' => hash('sha256', $this->apiKey),
     ]);
 
     $this->headers = ['X-BRAND-API-KEY' => $this->apiKey];

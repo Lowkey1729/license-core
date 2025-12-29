@@ -11,6 +11,7 @@ use App\Requests\CheckLicenseRequest;
 use App\Requests\DeActivateLicenseRequest;
 use App\Services\ProductLicenseService;
 use Illuminate\Contracts\Support\Responsable;
+use Throwable;
 
 class ProductLicenseController extends Controller
 {
@@ -30,6 +31,7 @@ class ProductLicenseController extends Controller
 
     /**
      * @throws LicenseException
+     * @throws Throwable
      */
     public function deactivate(DeActivateLicenseRequest $request): Responsable
     {

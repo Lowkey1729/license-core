@@ -9,6 +9,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -17,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
-        health: '/health',
+        health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(RequestTrace::class);
@@ -58,6 +60,39 @@ return Application::configure(basePath: dirname(__DIR__))
                     httpStatusCode: 405
                 );
             }
+        });
+
+        $exceptions->render(function (ValidationException $e, Request $request) {
+            if ($request->wantsJson()) {
+                return new FailureResponse(
+                    message: $e->getMessage(),
+                    httpStatusCode: 422
+                );
+            }
+        });
+
+        $exceptions->render(function (Throwable $e, Request $request) {
+
+            if (! $request->expectsJson()) {
+                Log::error($e);
+
+                return null;
+            }
+
+            $statusCode = $e instanceof HttpExceptionInterface
+                ? $e->getStatusCode()
+                : 500;
+
+            if ($statusCode >= 500) {
+                Log::error($e);
+
+                return new FailureResponse(
+                    message: 'An unexpected error occurred. Please try again later.',
+                    httpStatusCode: 500
+                );
+            }
+
+            return null;
         });
 
     })->create();

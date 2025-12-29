@@ -221,7 +221,7 @@ class ConfigureApp extends Command
 
             BrandApiKey::query()->create([
                 'brand_id' => $brand['id'],
-                'api_key' => $apiKey,
+                'api_key' => hash('sha256', $apiKey),
                 'expires_at' => null,
             ]);
 
@@ -232,6 +232,7 @@ class ConfigureApp extends Command
         }
 
         $this->info("\n🎉 X-BRAND-API-KEY Keys Generated Successfully! 🎉\n");
+        $this->warn('⚠️  Please copy and store this key securely now. You will NOT be able to view it again.');
 
         $headers = ['Brand', 'API Key'];
         $rows = array_map(fn ($item) => [$item['brand'], $item['api_key']], $apiKeys);

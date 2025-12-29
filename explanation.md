@@ -9,14 +9,104 @@
 
 ## 2. Architecture and Design
 
+### File Structure
+    license-core
+    ├── .github
+    ├── app
+    │   ├── Concerns
+    │   │   ├── ExceptionResponseTrait.php
+    │   │   └── HasUUIDs.php
+    │   ├── Console
+    │   │   └── Commands
+    │   │       └── ConfigureApp.php
+    │   ├── DTOs
+    │   │   └── Responses
+    │   │       ├── FailureResponse.php
+    │   │       └── SuccessResponse.php
+    │   ├── Enums
+    │   │   ├── ActorTypeEnum.php
+    │   │   ├── EventEnum.php
+    │   │   ├── LicenseActionEnum.php
+    │   │   └── LicenseStatusEnum.php
+    │   ├── Exceptions
+    │   │   ├── InvalidBrandKeyException.php
+    │   │   ├── InvalidLicenseActionException.php
+    │   │   ├── LicenseException.php
+    │   │   └── ProvisionLicenseException.php
+    │   ├── Helpers
+    │   │   ├── AESEncryption.php
+    │   │   ├── LicenseKeyAESEncryption.php
+    │   │   ├── LicenseKeyGenerator.php
+    │   │   └── Utils.php
+    │   ├── Http
+    │   │   ├── Controllers
+    │   │   │   ├── BrandLicenseController.php
+    │   │   │   ├── Controller.php
+    │   │   │   └── ProductLicenseController.php
+    │   │   └── Middleware
+    │   │       ├── BrandApiKeyAuth.php
+    │   │       ├── ForceJsonResponse.php
+    │   │       └── RequestTrace.php
+    │   ├── Jobs
+    │   │   └── AuditLogJob.php
+    │   ├── Models
+    │   │   ├── Activation.php
+    │   │   ├── AuditLog.php
+    │   │   ├── Brand.php
+    │   │   ├── BrandApiKey.php
+    │   │   ├── License.php
+    │   │   ├── LicenseKey.php
+    │   │   ├── Product.php
+    │   │   ├── RequestTrace.php
+    │   │   └── User.php
+    │   ├── Notifications
+    │   │   └── NewLicenseKeyNotification.php
+    │   ├── Providers
+    │   │   └── AppServiceProvider.php
+    │   ├── Requests
+    │   │   ├── ActivateLicenseRequest.php
+    │   │   ├── CheckLicenseRequest.php
+    │   │   ├── DeActivateLicenseRequest.php
+    │   │   ├── FetchLicensesRequest.php
+    │   │   ├── ProvisionLicenseRequest.php
+    │   │   └── UpdateLicenseStatusRequest.php
+    │   └── Services
+    │       ├── BrandLicenseService.php
+    │       └── ProductLicenseService.php
+    ├── bootstrap
+    │   ├── cache
+    │   ├── app.php
+    │   └── providers.php
+    ├── config
+    ├── database
+    │   ├── factories
+    │   ├── migrations
+    │   │   ├── 0001_01_01_000000_create_users_table.php
+    │   │   ├── 0001_01_01_000001_create_cache_table.php
+    │   │   ├── 0001_01_01_000002_create_jobs_table.php
+    │   │   ├── 2025_12_24_205610_create_brands_table.php
+    │   │   ├── 2025_12_24_205618_create_products_table.php
+    │   │   ├── 2025_12_24_205703_create_license_keys_table.php
+    │   │   ├── 2025_12_24_205704_create_licenses_table.php
+    │   │   ├── 2025_12_25_085514_create_brand_api_keys_table.php
+    │   │   └── 2025_12_25_090114_create_activations_table.php
+    │   ├── seeders
+    │   └── .gitignore
+    └── docker
+    └── tests
+
 ### Data Model & Multi-Tenancy
 I chose a **Shared Database, Shared Schema** approach for multi-tenancy.
 * **Tenant Identification:** Brands are the tenants. All core entities (`products`, `license_keys`, and `brand_api_keys`) are scoped by `brand_id`.
 * **Isolation:** Application-level scoping is enforced via Middleware and Service layers to ensure Brands can only manipulate their own data.
 * **Justification:** This allows for easier aggregation of data, specifically satisfying **US6** without complex cross-database queries.
 
+<img width="1900" height="2010" alt="img" src="https://github.com/user-attachments/assets/c5257048-9364-402e-bf79-a3d386daf1ad" />
+
+
+
 ### Security & Cryptography
-* **Brand Authentication:** Uses `X-BRAND-API-KEY`. Keys are stored encrypted using `AES-256-CBC` (via `App\Helpers\BrandApiKeyAESEncryption`).
+* **Brand Authentication:** Uses `X-BRAND-API-KEY`. Keys that are securely stored as hashed values.
 * **License Keys:** License keys are opaque tokens generated with high entropy (`random_bytes`).
     * **Storage:** They are stored **encrypted** in the database.
     * **Transmission:** They are only returned in plaintext once (upon creation) and sent to the customer's email.
@@ -29,16 +119,11 @@ I chose a **Shared Database, Shared Schema** approach for multi-tenancy.
 ### Pessimistic Locking
 * Implemented pessimistic locking to prevent race condition at the point of activating/deactivating a product license.
 
-### Rate Limiting
-* Implemented rate limiting to prevent the abuse of activate/deactivate endpoint for product license.
-
-### NoSQL (MongoDB)
-* Audit logging and Request Tracing is write-heavy. Offloading these high-volume inserts to a dedicated NoSQL store prevents locking or bloating the primary transactional database (MySQL).
 
 ## 3. Trade-offs and Decisions
 
-### Encryption vs. Hashing for Keys
-* **Decision:** I chose **Symmetric Encryption** (AES) over Hashing (bcrypt/argon2) for API and License Keys.
+### Encryption vs. Hashing for License Keys
+* **Decision:** I chose **Symmetric Encryption** (AES) over Hashing (bcrypt/argon2) for License Keys.
 * **Trade-off:** Hashing is generally more secure for authentication secrets. However, in this domain, Brands may need to retrieve or audit keys. Encryption offers a balance between security (at rest) and recoverability.
 
 ## 4. Alternatives Considered
@@ -79,6 +164,8 @@ To move this from a test case to a high-scale production system:
     cd license-core
     cp .env.example .env
     cp .env.example.testing .env.testing
+    php artisan key:generate
+    php artisan key:generate --env=testing
     ```
 
 2. **Install Dependencies**
@@ -102,6 +189,15 @@ To move this from a test case to a high-scale production system:
 5. **Run Tests**
     ```bash
     docker exec -it license_app php artisan test
+    ```
+
+6. **Run Static Analysis**
+    ```bash
+    docker compose exec app composer analyze
+    ```
+7. **Code Style Fixes**
+    ```bash
+    docker compose exec app composer pint
     ```
 
 ## 8. API Testing Examples
@@ -290,29 +386,29 @@ curl -X GET "http://localhost:29001/api/v1/brand/licenses?email=customer@example
 **Expected Response:**
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "license_key": "RM-XXXX-XXXX-XXXX-XXXX",
-      "email": "customer@example.com",
-      "brand": "rankmath",
-      "products": ["rank-math-pro"],
-      "status": "active",
-      "seats_used": 1,
-      "max_seats": 3,
-      "expires_at": "2025-12-31T23:59:59Z"
-    },
-    {
-      "license_key": "WP-YYYY-YYYY-YYYY-YYYY",
-      "email": "customer@example.com",
-      "brand": "wprocket",
-      "products": ["wp-rocket"],
-      "status": "active",
-      "seats_used": 2,
-      "max_seats": 5,
-      "expires_at": "2026-06-30T23:59:59Z"
-    }
-  ]
+    "success": true,
+    "data": [
+        {
+            "license_key": "RM-XXXX-XXXX-XXXX-XXXX",
+            "email": "customer@example.com",
+            "brand": "rankmath",
+            "products": ["rank-math-pro"],
+            "status": "active",
+            "seats_used": 1,
+            "max_seats": 3,
+            "expires_at": "2025-12-31T23:59:59Z"
+        },
+        {
+            "license_key": "WP-YYYY-YYYY-YYYY-YYYY",
+            "email": "customer@example.com",
+            "brand": "wprocket",
+            "products": ["wp-rocket"],
+            "status": "active",
+            "seats_used": 2,
+            "max_seats": 5,
+            "expires_at": "2026-06-30T23:59:59Z"
+        }
+    ]
 }
 ```
 
@@ -322,5 +418,39 @@ curl -X GET "http://localhost:29001/api/v1/brand/licenses?email=customer@example
   -H "X-BRAND-API-KEY: your-brand-key-here"
 ```
 
-## 9. Known Limitations & Next Steps
+## 9. Observability, Operability & Error Handling
+
+### Request Tracing
+- Every incoming request is assigned a unique trace ID via middleware.
+- Traces are persisted in MongoDB for correlation across logs and failures.
+- This enables debugging across Brand API and Product API calls.
+
+### Observerbility
+- Laravel nightwatch
+
+### Audit Logging
+- All sensitive actions (provisioning, activation, deactivation, lifecycle changes)
+  emit structured audit events.
+- Audit logs are written asynchronously to MongoDB to avoid blocking
+  transactional flows.
+
+### Error Handling Strategy
+- Domain-specific exceptions (e.g. `InvalidBrandKeyException`,
+  `ProvisionLicenseException`) are thrown at the Service layer.
+- A centralized exception response trait ensures:
+    - Consistent JSON error shape
+    - No internal details leaked to consumers
+- Errors are logged with trace IDs for correlation.
+
+### Rate Limiting & Abuse Protection
+- Activation and deactivation endpoints are rate-limited
+  to prevent brute-force or abuse scenarios.
+
+### Operational Readiness
+- The service is stateless and horizontally scalable.
+- MongoDB separation ensures high write throughput for logs.
+- Health endpoints are exposed for container orchestration and monitoring systems.
+
+
+## 10. Known Limitations & Next Steps
 1. **Webhooks:** Brands currently have to pull data. *Next Step:* Implement webhooks to notify Brands when a user activates or deactivates a license.
